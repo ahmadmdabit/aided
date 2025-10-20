@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "bundler",
+    "strict": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true,
+    // Add this line
+    "forceConsistentCasingInFileNames": true,
+    // Monorepo path aliases
+    "baseUrl": ".",
+    "paths": {
+      "@aided/core": ["packages/core/src"],
+      "@aided/core/*": ["packages/core/src/*"]
+    }
+  },
+  "include": ["packages", "playground", "packages/core/src/vite-env.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
