@@ -40,24 +40,6 @@ jobs:
           corepack prepare yarn@4.10.3 --activate
         shell: bash
 
-      - name: Print & save yarn cache dir
-        id: yarn-cache
-        run: |
-          echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $GITHUB_ENV
-          echo "YARN_CACHE_DIR is $YARN_CACHE_DIR"
-        shell: bash
-
-      - name: Restore Yarn cache (dynamic)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.YARN_CACHE_DIR }}
-            .yarn/cache
-            .yarn/install-state.gz
-          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-${{ runner.os }}-          
-
       # 3. Install dependencies
       - name: Install Dependencies
         run: yarn install --immutable
