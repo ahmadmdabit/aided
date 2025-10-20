@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, render, createSignal, VirtualFor } from '@aided/core'; // , createMemo
+import { h, render, createSignal, VirtualFor } from 'aided-core'; // , createMemo
 
 type Row = { id: number; text: string };
 

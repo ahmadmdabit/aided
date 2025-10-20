@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .ts",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "build": "yarn workspace @aided/core build",
+    "build": "yarn workspace aided-core build",
     "build:lint": "yarn lint && yarn build",
     "build:test": "yarn build:lint && yarn coverage"
   },

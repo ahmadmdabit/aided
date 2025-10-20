@@ -1,24 +1,51 @@
 {
-  "name": "@aided/core",
-  "version": "0.0.1",
-  "description": "The core package for the Aided fine-grained reactive library.",
+  "name": "aided-core",
+  "version": "1.0.0",
+  "description": "A minimal JavaScript library for building user interfaces with fine-grained reactivity.",
+  "author": "Ahmet Fatihoğlu (https://github.com/ahmadmdabit)",
+  "license": "MIT",
   "type": "module",
+  "keywords": [
+    "aided",
+    "reactive",
+    "reactivity",
+    "fine-grained",
+    "ui",
+    "frontend",
+    "javascript",
+    "typescript",
+    "signal",
+    "effect",
+    "dom"
+  ],
+  "homepage": "https://github.com/ahmadmdabit/aided#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahmadmdabit/aided.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/ahmadmdabit/aided/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist"
+  ],
   "main": "./dist/aided-core.umd.js",
   "module": "./dist/aided-core.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/aided-core.es.js",
       "require": "./dist/aided-core.umd.js"
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "prepublishOnly": "yarn build"
   }
 }

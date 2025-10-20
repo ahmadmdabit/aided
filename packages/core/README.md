@@ -1,9 +1,9 @@
 # Aided
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@aided/core"><img src="https://img.shields.io/npm/v/@aided/core.svg" alt="npm version"></a>
-  <a href="https://bundlephobia.com/package/@aided/core"><img src="https://img.shields.io/bundlephobia/minzip/@aided/core.svg" alt="bundle size"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/npm/l/@aided/core.svg" alt="license"></a>
+  <a href="https://www.npmjs.com/package/aided-core"><img src="https://img.shields.io/npm/v/aided-core.svg" alt="npm version"></a>
+  <a href="https://bundlephobia.com/package/aided-core"><img src="https://img.shields.io/bundlephobia/minzip/aided-core.svg" alt="bundle size"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/npm/l/aided-core.svg" alt="license"></a>
   <a href="https://github.com/ahmadmdabit/aided/actions/workflows/ci.yml"><img src="https://github.com/ahmadmdabit/aided/actions/workflows/ci.yml/badge.svg" alt="build status"></a>
   <a href="https://ahmadmdabit.github.io/aided/"><img src="https://ahmadmdabit.github.io/aided/coverage-badge.svg" alt="coverage report"></a>
 </p>
@@ -27,9 +27,9 @@ Aided is a minimal JavaScript library for building user interfaces with fine-gra
 ## Installation
 
 ```bash
-yarn add @aided/core
+yarn add aided-core
 # or
-npm install @aided/core
+npm install aided-core
 ```
 
 ## Getting Started
@@ -44,7 +44,7 @@ Aided uses a **hyperscript** function, `h`, for a declarative and readable way t
 
 **main.js**
 ```javascript
-import { render, createSignal, h } from '@aided/core';
+import { render, createSignal, h } from 'aided-core';
 
 function Counter() {
   const [count, setCount] = createSignal(0);
@@ -113,7 +113,7 @@ The main entry point for an application. It mounts a component into a DOM node w
 The `h` helper is the primary way to build UI in Aided. It's a proxy that provides a function for every HTML tag (e.g., `h.div`, `h.a`).
 
 ```javascript
-import { h, createSignal } from '@aided/core';
+import { h, createSignal } from 'aided-core';
 
 const [name, setName] = createSignal('World');
 const [isActive, setIsActive] = createSignal(true);

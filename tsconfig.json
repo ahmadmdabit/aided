@@ -18,8 +18,8 @@
     // Monorepo path aliases
     "baseUrl": ".",
     "paths": {
-      "@aided/core": ["packages/core/src"],
-      "@aided/core/*": ["packages/core/src/*"]
+      "aided-core": ["packages/core/src"],
+      "aided-core/*": ["packages/core/src/*"]
     }
   },
   "include": ["packages", "playground", "packages/core/src/vite-env.d.ts"],

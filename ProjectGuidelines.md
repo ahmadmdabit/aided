@@ -10,7 +10,7 @@ Aided is built on a set of core beliefs that guide every architectural decision.
 *   **No Magic:** The library's behavior should be predictable and transparent. We avoid implicit behaviors and favor clear, functional APIs. For example, reactivity is triggered by explicitly calling a signal (`count()`), not through proxy-based magic.
 *   **Robustness and Correctness First:** We prioritize building a leak-free, bug-resistant foundation. Every feature is built with memory management (`createRoot`, `onCleanup`) and error handling in mind from the start.
 *   **Developer Experience is a Feature:** A great library is one that is a joy to use. We invest heavily in clear and actionable error messages, development-mode warnings, strong TypeScript support, and ergonomic APIs like the `h` helper.
-*   **Lean and Dependency-Free:** The core runtime (`@aided/core`) has zero third-party dependencies. This ensures it is lightweight, secure, and has a minimal footprint.
+*   **Lean and Dependency-Free:** The core runtime (`aided-core`) has zero third-party dependencies. This ensures it is lightweight, secure, and has a minimal footprint.
 
 ## 2. Design Patterns & Architecture
 
