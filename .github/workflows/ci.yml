@@ -33,13 +33,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'yarn'
-      
-      - name: Install Yarn
-        run: corepack enable
 
-      - name: Set Yarn Version
-        run: yarn set version stable
+      - name: Enable Corepack & activate Yarn v4
+        run: |
+          corepack enable
+          corepack prepare yarn@4.10.3 --activate
+        shell: bash
+
+      - name: Print & save yarn cache dir
+        id: yarn-cache
+        run: |
+          echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $GITHUB_ENV
+          echo "YARN_CACHE_DIR is $YARN_CACHE_DIR"
+        shell: bash
+
+      - name: Restore Yarn cache (dynamic)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.YARN_CACHE_DIR }}
+            .yarn/cache
+            .yarn/install-state.gz
+          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-          
 
       # 3. Install dependencies
       - name: Install Dependencies
