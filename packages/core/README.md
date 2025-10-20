@@ -5,7 +5,7 @@
   <a href="https://bundlephobia.com/package/aided-core"><img src="https://img.shields.io/bundlephobia/minzip/aided-core.svg" alt="bundle size"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/npm/l/aided-core.svg" alt="license"></a>
   <a href="https://github.com/ahmadmdabit/aided/actions/workflows/ci.yml"><img src="https://github.com/ahmadmdabit/aided/actions/workflows/ci.yml/badge.svg" alt="build status"></a>
-  <a href="https://ahmadmdabit.github.io/aided/"><img src="https://ahmadmdabit.github.io/aided/coverage-badge.svg" alt="coverage report"></a>
+  <a href="https://ahmadmdabit.github.io/aided/"><img src="https://img.shields.io/badge/coverage-report-green.svg" alt="coverage report"></a>
 </p>
 
 <p align="center">
