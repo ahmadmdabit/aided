@@ -1,18 +1,11 @@
+import { createRoot, onCleanup } from '../lifecycle/lifecycle';
+import { createEffect } from '../primitives/effect';
+import { createSignal } from '../primitives/signal';
+import { h } from '../h';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  createSignal,
-  createRoot,
-  onCleanup,
-  bindText,
-  bindAttr,
-  bindEvent,
-  render,
-  createEffect,
-  bindClassList,
-  bindStyle,
-  Model,
-  AidedError,
-} from '../index';
+import { render } from './render';
+import { bindAttr, bindClassList, bindEvent, bindStyle, bindText, Model } from './bindings';
+import { AidedError } from '../error';
 
 // Helper to wait for the next microtask queue flush
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -199,11 +192,11 @@ describe('Aided DOM & Lifecycle', () => {
         });
 
         expect(button.disabled).toBe(true);
-        
+
         setDisabled(false);
         await tick(); // Hits false branch -> removeAttribute
         expect(button.disabled).toBe(false);
-        
+
         setDisabled(null);
         await tick(); // Hits null branch
         expect(button.hasAttribute('disabled')).toBe(false);
@@ -264,7 +257,7 @@ describe('Aided DOM & Lifecycle', () => {
         const handler = vi.fn(() => {
           throw error;
         });
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
         const button = document.createElement('button');
         root.appendChild(button);
 
@@ -320,6 +313,27 @@ describe('Aided DOM & Lifecycle', () => {
 
         expect(el.classList.contains('active')).toBe(false);
         expect(el.classList.contains('error')).toBe(true); // Hits !!true toggle
+      });
+
+      it('should handle static boolean values in classList', () => {
+        // This test specifically covers the non-function `else` branch in `bindClassList`.
+        disposeRoot = createRoot(() => {
+          const el = h.div({
+            classList: {
+              'class-a': true,  // Static true
+              'class-b': false, // Static false
+              'class-c': true,  // Another static true
+            },
+          });
+          root.appendChild(el);
+        });
+
+        const div = root.querySelector('div')!;
+
+        // Assert that the classes were applied correctly on initial render.
+        expect(div.classList.contains('class-a')).toBe(true);
+        expect(div.classList.contains('class-b')).toBe(false);
+        expect(div.classList.contains('class-c')).toBe(true);
       });
 
       // New: Test falsey booleans and empty map
@@ -586,9 +600,9 @@ describe('Aided DOM & Lifecycle', () => {
 
         let modelDispose: () => void;
         disposeRoot = createRoot(() => {
-          Model(input, [value, () => {}]); // Bind
+          Model(input, [value, () => { }]); // Bind
           // Capture the inner dispose if needed, but root dispose covers
-          modelDispose = () => {}; // Placeholder; actual cleanup via onCleanup in Model
+          modelDispose = () => { }; // Placeholder; actual cleanup via onCleanup in Model
           console.log("Log to skip the warning of error TS6133: 'modelDispose' is declared but its value is never read.", typeof modelDispose);
         });
 
@@ -610,7 +624,7 @@ describe('Aided DOM & Lifecycle', () => {
 
     beforeEach(() => {
       // Suppress console warnings in tests
-      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
       // Set NODE_ENV for testing warnings
       process.env.NODE_ENV = 'development';
     });
@@ -632,14 +646,14 @@ describe('Aided DOM & Lifecycle', () => {
     });
 
     it('should warn when onCleanup is called without an owner', () => {
-      onCleanup(() => {});
+      onCleanup(() => { });
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('onCleanup() was called outside of a reactive scope')
       );
     });
 
     it('should warn when createEffect is called without an owner', () => {
-      createEffect(() => {});
+      createEffect(() => { });
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('createEffect() was called outside of a reactive root')
       );
@@ -647,8 +661,8 @@ describe('Aided DOM & Lifecycle', () => {
 
     it('should NOT warn when running in production mode', () => {
       process.env.NODE_ENV = 'production';
-      onCleanup(() => {});
-      createEffect(() => {});
+      onCleanup(() => { });
+      createEffect(() => { });
       expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
   });

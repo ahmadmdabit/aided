@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, render, createSignal, VirtualFor } from 'aided-core'; // , createMemo
+import { h, createSignal, VirtualFor } from 'aided-core';
 
 type Row = { id: number; text: string };
 
@@ -7,7 +7,8 @@ function makeData(n: number): Row[] {
   return Array.from({ length: n }, (_, i) => ({ id: i, text: `Item ${i}` }));
 }
 
-function App() {
+// The component is now an exportable function
+export function VirtualForDemo() {
   const [size, setSize] = createSignal<number>(100000);
   const [itemHeight, setItemHeight] = createSignal<number>(30);
   const [overscan, setOverscan] = createSignal<number>(5);
@@ -132,18 +133,4 @@ function App() {
     controls,
     list,
   );
-}
-
-// --- Render the Component ---
-const appRoot = document.getElementById('app');
-if (appRoot) {
-  // The 'render' function mounts the component and sets up the lifecycle
-  const disposeApp = render(App, appRoot);
-
-  // To prove cleanup works, you could add a button to call `disposeApp()`
-  // which would unmount the component and stop all reactive updates.
-
-  // Make the variable "used" for the linter
-  console.log('Aided app rendered. To unmount, run `window.disposeApp()` in the console.');
-  (window as any).disposeApp = disposeApp;
 }

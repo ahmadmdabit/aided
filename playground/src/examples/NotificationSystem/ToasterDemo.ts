@@ -1,0 +1,40 @@
+import { h } from 'aided-core';
+import { createToaster } from './createToaster';
+
+// 1. Create a toaster instance. You can configure it here.
+const toaster = createToaster({
+  position: 'bottom-right',
+  defaultDuration: 5000,
+});
+
+// You could even create a second, separate toaster instance!
+const topLeftToaster = createToaster({ position: 'top-left' });
+
+export function ToasterDemo() {
+  return h.div(
+    h.h1('Reusable Notification System'),
+    h.p('Click the buttons to add different types of notifications.'),
+    h.div(
+      h.h3('Bottom-Right Toaster'),
+      h.button({
+        onClick: () => toaster.add('User logged in successfully.', { type: 'success' })
+      }, 'Add Success'),
+      
+      h.button({
+        onClick: () => toaster.add('This is a persistent error message. Click to dismiss.', { type: 'error', persistent: true })
+      }, 'Add Persistent Error'),
+
+      h.button({ onClick: toaster.clearAll }, 'Clear All')
+    ),
+    h.div(
+      h.h3('Top-Left Toaster'),
+      h.button({
+        onClick: () => topLeftToaster.add('Your session is about to expire.', { type: 'warning' })
+      }, 'Add Warning')
+    ),
+
+    // 2. Mount the UI component for each instance.
+    toaster.ToasterComponent(),
+    topLeftToaster.ToasterComponent()
+  );
+}

@@ -1,5 +1,6 @@
+import { createRoot, inject as useContext, provide } from '../lifecycle/lifecycle';
 import { describe, it, expect, vi } from 'vitest';
-import { createRoot, createContext, provide, useContext } from '../index';
+import { createContext } from './context';
 
 describe('Aided Context API', () => {
   it('should provide and inject a value', () => {

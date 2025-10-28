@@ -5,10 +5,36 @@ import { hasOwner, onCleanup } from '../lifecycle/lifecycle';
 import { devWarning } from '../error';
 
 /**
- * Creates an effect that automatically re-runs when its dependencies (signals) change.
+ * Creates an effect that automatically re-runs when its dependencies change.
  *
- * @param fn The function to run as an effect.
- * @returns A disposer function to manually stop the effect.
+ * Effects are functions that run immediately and re-run whenever any signals they
+ * read during execution change. They're the primary way to create side effects
+ * that respond to reactive state changes.
+ *
+ * @param fn The function to run as an effect - will be called immediately and whenever dependencies change
+ * @param options Optional configuration including debug name
+ * @returns A disposer function to manually stop the effect and clean up resources
+ *
+ * @example
+ * ```typescript
+ * const [count, setCount] = createSignal(0);
+ *
+ * createEffect(() => {
+ *   console.log('Count changed to:', count());
+ *   document.title = `Count: ${count()}`;
+ * });
+ *
+ * setCount(1); // Logs: "Count changed to: 1"
+ * setCount(2); // Logs: "Count changed to: 2"
+ *
+ * // Effects must be created within a reactive root for proper cleanup
+ * createRoot(() => {
+ *   const dispose = createEffect(() => {
+ *     // ... effect logic
+ *   });
+ *   // dispose() will clean up the effect when called
+ * });
+ * ```
  */
 export function createEffect(fn: () => void, options?: ReactiveOptions): Disposer {
   // Add the warning here

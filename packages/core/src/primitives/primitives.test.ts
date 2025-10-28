@@ -1,5 +1,9 @@
+import { createRoot } from '../lifecycle/lifecycle';
+import { createEffect } from '../primitives/effect';
+import { createSignal } from '../primitives/signal';
 import { describe, it, expect, vi } from 'vitest';
-import { createSignal, createEffect, createMemo, createRoot } from '../index';
+import { createMemo } from './memo';
+import { untrack } from './untrack';
 
 // Helper to wait for the next microtask
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -94,7 +98,7 @@ describe('Aided Core Reactivity', () => {
         });
       });
     });
-    
+
 
     expect(outerEffectFn).toHaveBeenCalledTimes(1);
     expect(innerEffectFn).toHaveBeenCalledTimes(1);
@@ -191,4 +195,105 @@ describe('Aided Core Reactivity', () => {
     // Clean up the root at the end of the test
     dispose();
   });
+
+  describe('untrack', () => {
+    it('should execute a function without tracking dependencies', async () => {
+      const [count, setCount] = createSignal(0);
+      const [untrackedCount, setUntrackedCount] = createSignal(100);
+
+      const effectFn = vi.fn(() => {
+        // 1. This dependency IS tracked.
+        count();
+
+        // 2. Everything inside untrack is NOT tracked.
+        untrack(() => {
+          untrackedCount();
+        });
+      });
+
+      const dispose = createRoot(() => {
+        createEffect(effectFn);
+      });
+
+      // Initial run
+      expect(effectFn).toHaveBeenCalledTimes(1);
+
+      // 3. This change SHOULD trigger the effect.
+      setCount(5);
+      await tick();
+      expect(effectFn).toHaveBeenCalledTimes(2);
+
+      // 4. This change SHOULD NOT trigger the effect, because its read was untracked.
+      setUntrackedCount(200);
+      await tick();
+      expect(effectFn).toHaveBeenCalledTimes(2); // The count should NOT increase
+
+      dispose();
+    });
+
+    it('should return the result of the untracked function', () => {
+      const [value] = createSignal(42);
+
+      const result = untrack(() => {
+        return value() * 2;
+      });
+
+      expect(result).toBe(84);
+    });
+
+    it('should restore tracking after execution', async () => {
+      const [signalA, setSignalA] = createSignal('a');
+      const [signalB, setSignalB] = createSignal('b');
+
+      const effectFn = vi.fn(() => {
+        // This read is untracked
+        untrack(() => {
+          signalA();
+        });
+
+        // This read SHOULD be tracked because it's outside the untrack block.
+        signalB();
+      });
+
+      const dispose = createRoot(() => {
+        createEffect(effectFn);
+      });
+
+      expect(effectFn).toHaveBeenCalledTimes(1);
+
+      // This should NOT trigger the effect
+      setSignalA('a-updated');
+      await tick();
+      expect(effectFn).toHaveBeenCalledTimes(1);
+
+      // This SHOULD trigger the effect
+      setSignalB('b-updated');
+      await tick();
+      expect(effectFn).toHaveBeenCalledTimes(2);
+
+      dispose();
+    });
+
+    it('should handle nested untrack calls', () => {
+      const [a] = createSignal('a');
+      const [b] = createSignal('b');
+
+      const result = untrack(() => {
+        return untrack(() => {
+          return `${a()}-${b()}`;
+        });
+      });
+
+      expect(result).toBe('a-b');
+    });
+
+    it('should handle errors thrown in untracked functions', () => {
+      expect(() => {
+        untrack(() => {
+          throw new Error('Test error');
+        });
+      }).toThrow('Test error');
+    });
+  });
+
 });

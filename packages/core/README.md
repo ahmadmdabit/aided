@@ -64,6 +64,24 @@ function Counter() {
 render(Counter, document.getElementById('app'));
 ```
 
+## Interactive Playground
+
+Explore Aided's capabilities with our comprehensive **interactive playground** located in the `playground/` directory. The playground includes:
+
+- **Live Examples**: Interactive demos of all major features including signals, effects, memos, and components
+- **Real-World Patterns**: Complete implementations of common UI patterns like forms, modals, notifications, and virtualized lists
+- **Component Showcase**: Working examples of all structural components (`For`, `Show`, `VirtualFor`, etc.)
+- **Advanced Patterns**: Demonstrations of complex reactivity patterns including context, portals, and state isolation
+
+To run the playground:
+```bash
+cd playground
+yarn install
+yarn dev
+```
+
+The playground serves as both a learning resource and a testing ground for new features, showcasing best practices and real-world usage patterns.
+
 ## API Reference
 
 ### Core Primitives
@@ -80,15 +98,67 @@ Creates a reactive scope that automatically re-runs when its dependencies change
 
 Creates a derived, read-only signal that caches its value.
 
+#### `untrack<T>(fn: () => T): T`
+**New in v1.1.0** - Executes a function without tracking its dependencies, preventing the current reactive scope from re-running when signals inside the function change.
+
+Useful for:
+- Creating component instances that maintain independent state
+- Performing side effects without triggering reactive updates
+- Breaking unwanted dependency chains
+
+```javascript
+const [count, setCount] = createSignal(0);
+
+// This effect normally re-runs when count changes
+createEffect(() => {
+  console.log('Count:', count());
+});
+
+// This won't trigger the effect
+untrack(() => {
+  console.log('Silent read:', count()); // Not tracked
+});
+```
+
 #### `createResource<S, T>(source: SignalGetter<S>, fetcher: Fetcher<S, T>): Resource<T>`
 
 Creates a signal for managing asynchronous data, complete with reactive `.loading` and `.error` states.
+
+#### `createResource<S, T>(source: SignalGetter<S>, fetcher: Fetcher<S, T>): Resource<T>`
+
+Creates a signal for managing asynchronous data, complete with reactive `.loading` and `.error` states.
+
+#### `longestIncreasingSubsequenceAsync(array: Int32Array): Promise<number[]>`
+
+High-performance async implementation of the longest increasing subsequence algorithm for large arrays, using Web Workers for non-blocking computation.
+
+#### `configureLIS(options: { smallArrayThreshold: number }): void`
+
+Configures the threshold for switching between fast and optimized LIS algorithms.
+
+#### `AidedError`
+
+Custom error class for better debugging of reactive issues.
 
 ### Lifecycle & Context
 
 #### `createRoot(fn: (dispose: Disposer) => void): Disposer`
 
 Creates a top-level ownership scope for automatic memory management.
+
+#### `onCleanup(fn: Disposer): void`
+
+Registers a cleanup function to run when the current reactive scope is disposed. Essential for cleaning up event listeners, timers, and other resources.
+
+```javascript
+createEffect(() => {
+  const timer = setInterval(() => console.log('tick'), 1000);
+
+  onCleanup(() => {
+    clearInterval(timer); // Clean up when effect re-runs or scope ends
+  });
+});
+```
 
 #### `createContext<T>(defaultValue?: T): Context<T>`
 
@@ -122,7 +192,7 @@ const element = h.div(
   // Attributes and event handlers go in an object
   {
     id: 'container',
-    classList: { active: isActive },
+    classList: { active: isActive, static: true },
     style: { color: () => isActive() ? 'blue' : 'grey' },
     onClick: () => console.log('Clicked!'),
   },
@@ -219,11 +289,20 @@ Groups multiple children without adding a wrapper element to the DOM.
 
 Renders `children` into a different DOM `mount` node.
 
-## Philosophy & Trade-offs
+## Performance & Trade-offs
 
-Aided is designed for performance and simplicity. By omitting a Virtual DOM, it reduces overhead and bundle size. The trade-off is that it does not use JSX, instead opting for a hyperscript function (`h`) for UI creation.
+Aided achieves exceptional performance through:
 
-The keyed reconciliation in `For` is highly efficient for lists with stable keys. For extremely large datasets, the `VirtualFor` component provides best-in-class rendering performance.
+- **Direct DOM Manipulation**: No Virtual DOM diffing - effects bind directly to DOM nodes
+- **Fine-Grained Updates**: Only code dependent on changed state re-executes
+- **Surgical Reconciliation**: The `For` component uses an optimized LIS algorithm for minimal DOM operations
+- **Virtual Scrolling**: `VirtualFor` renders only visible items for millions of rows
+
+**Bundle Size**: 4.67kb minified + gzipped
+**Memory**: Automatic cleanup prevents leaks through ownership graph
+**Runtime**: Zero dependencies, pure JavaScript execution
+
+The trade-off is that it does not use JSX, instead opting for a hyperscript function (`h`) for UI creation. The keyed reconciliation in `For` is highly efficient for lists with stable keys. For extremely large datasets, the `VirtualFor` component provides best-in-class rendering performance.
 
 ## Contributing
 

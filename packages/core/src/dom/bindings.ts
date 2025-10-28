@@ -5,10 +5,18 @@ import type { SignalGetter, SignalSetter } from '../types';
 
 /**
  * Binds a signal to the textContent of a DOM element.
- * This is a side effect, so it should be run within a root or an effect.
+ * Automatically updates the element's text content when the signal changes.
  *
- * @param element The DOM element to update.
- * @param signal A signal whose value will be set as the textContent.
+ * @param element The DOM element to update
+ * @param signal A signal whose value will be converted to string and set as textContent
+ *
+ * @example
+ * ```typescript
+ * const [message, setMessage] = createSignal('Hello');
+ * const div = document.createElement('div');
+ * bindText(div, message); // div.textContent = 'Hello'
+ * setMessage('World');    // div.textContent = 'World'
+ * ```
  */
 export function bindText<T>(element: Node, signal: SignalGetter<T>): void {
   createEffect(() => {
@@ -19,10 +27,21 @@ export function bindText<T>(element: Node, signal: SignalGetter<T>): void {
 
 /**
  * Binds a signal to an attribute of a DOM element.
+ * Automatically updates the attribute when the signal changes.
+ * Removes the attribute when the signal value is null, undefined, or false.
  *
- * @param element The DOM element to update.
- * @param attributeName The name of the attribute to bind.
- * @param signal A signal whose value will be set as the attribute.
+ * @param element The DOM element to update
+ * @param attributeName The name of the attribute to bind
+ * @param signal A signal whose value will be set as the attribute value
+ *
+ * @example
+ * ```typescript
+ * const [isDisabled, setDisabled] = createSignal(false);
+ * const button = document.createElement('button');
+ * bindAttr(button, 'disabled', () => isDisabled() || null);
+ * // When isDisabled is true: <button disabled>
+ * // When isDisabled is false/null: <button>
+ * ```
  */
 export function bindAttr<T>(element: Element, attributeName: string, signal: SignalGetter<T>): void {
   createEffect(() => {
@@ -37,11 +56,23 @@ export function bindAttr<T>(element: Element, attributeName: string, signal: Sig
 
 /**
  * Attaches an event listener to a DOM element with type-safe event objects.
- * The handler is automatically cleaned up when the owner scope is disposed.
+ * The listener is automatically removed when the current reactive owner is disposed,
+ * preventing memory leaks.
  *
- * @param element The DOM element to attach the listener to.
- * @param eventName The name of the event (e.g., 'click').
- * @param handler The function to run when the event is triggered.
+ * @param element The DOM element to attach the listener to
+ * @param eventName The name of the event (e.g., 'click', 'input', 'change')
+ * @param handler The function to run when the event is triggered
+ *
+ * @example
+ * ```typescript
+ * const button = document.createElement('button');
+ * const [count, setCount] = createSignal(0);
+ *
+ * createRoot(() => {
+ *   bindEvent(button, 'click', () => setCount(count() + 1));
+ *   // Listener is automatically removed when root is disposed
+ * });
+ * ```
  */
 export function bindEvent<K extends keyof HTMLElementEventMap>(
   element: HTMLElement,
@@ -75,17 +106,41 @@ type ClassListMap = {
 };
 
 /**
- * Reactively toggles CSS classes on an element based on boolean signals.
+ * Reactively toggles CSS classes on an element based on boolean signals or static values.
+ * Classes are added when the value is truthy and removed when falsy.
  *
- * @param element The DOM element to apply classes to.
- * @param classMap An object where keys are class names and values are boolean signals.
+ * @param element The DOM element to apply classes to
+ * @param classMap An object where keys are class names and values are boolean signals or static booleans
+ *
+ * @example
+ * ```typescript
+ * const [isActive, setActive] = createSignal(true);
+ * const [isLarge] = createSignal(false);
+ * const div = document.createElement('div');
+ *
+ * bindClassList(div, {
+ *   active: isActive,      // Reactive: added/removed based on signal
+ *   large: () => isLarge(), // Reactive: computed value
+ *   static: true           // Static: always present
+ * });
+ * // Result: <div class="active static">
+ * ```
  */
 export function bindClassList(element: Element, classMap: ClassListMap): void {
   for (const className in classMap) {
-    createEffect(() => {
-      const shouldHaveClass = !!classMap[className]();
-      element.classList.toggle(className, shouldHaveClass);
-    });
+    const value = classMap[className];
+
+    if (typeof value === 'function') {
+      // It's a signal, so create a reactive effect.
+      createEffect(() => {
+        const shouldHaveClass = !!value();
+        element.classList.toggle(className, shouldHaveClass);
+      });
+    } else {
+      // It's a static boolean, so just set it once.
+      // This is more efficient as it avoids creating an unnecessary effect.
+      element.classList.toggle(className, !!value);
+    }
   }
 }
 
@@ -99,9 +154,22 @@ type StyleMap = {
 
 /**
  * Reactively updates individual CSS style properties on an element.
+ * Supports both static values and reactive signals for each style property.
  *
- * @param element The HTMLElement to apply styles to.
- * @param styleMap An object where keys are CSS property names and values are signals.
+ * @param element The HTMLElement to apply styles to
+ * @param styleMap An object where keys are CSS property names and values are signals or static values
+ *
+ * @example
+ * ```typescript
+ * const [color, setColor] = createSignal('red');
+ * const div = document.createElement('div');
+ *
+ * bindStyle(div, {
+ *   color: color,              // Reactive: changes with signal
+ *   fontSize: '16px',          // Static: constant value
+ *   backgroundColor: () => color() === 'red' ? 'lightcoral' : 'lightblue'
+ * });
+ * ```
  */
 export function bindStyle(element: HTMLElement, styleMap: Partial<StyleMap>): void {
   // Use Object.keys for safer iteration over own properties
@@ -133,10 +201,25 @@ export function bindStyle(element: HTMLElement, styleMap: Partial<StyleMap>): vo
 /**
  * Creates a two-way binding between a form input and a signal.
  * Updates the signal when the input value changes, and updates the input value
- * when the signal changes.
+ * when the signal changes. Handles different input types (text, checkbox, radio, select).
  *
- * @param element The input, textarea, or select element.
- * @param signal The signal to bind to.
+ * @param element The input, textarea, or select element to bind
+ * @param signal A tuple of [getter, setter] for the signal to bind to
+ *
+ * @example
+ * ```typescript
+ * const [name, setName] = createSignal('');
+ * const input = document.createElement('input');
+ *
+ * Model(input, [name, setName]);
+ * // Now input.value and name() stay in sync
+ *
+ * // For checkboxes
+ * const [checked, setChecked] = createSignal(false);
+ * const checkbox = document.createElement('input');
+ * checkbox.type = 'checkbox';
+ * Model(checkbox, [checked, setChecked]);
+ * ```
  */
 export function Model<T>(
   element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,

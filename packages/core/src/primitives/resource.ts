@@ -6,12 +6,44 @@ import type { Resource, SignalGetter, ReactiveOptions } from '../types';
 type Fetcher<S, T> = (source: S) => T | Promise<T>;
 
 /**
- * Creates a resource that handles asynchronous data fetching.
- * It automatically re-fetches when its source signal changes.
+ * Creates a resource that handles asynchronous data fetching with reactive state management.
  *
- * @param source A signal that provides the input for the fetcher.
- * @param fetcher A function that takes the source value and returns the data or a Promise.
- * @param options Optional configuration, including a debug name.
+ * Resources automatically track loading, error, and data states. They re-fetch data
+ * whenever their source signal changes and provide reactive access to all states.
+ *
+ * @param source A signal that provides the input for the fetcher function
+ * @param fetcher A function that takes the source value and returns data or a Promise
+ * @param options Optional configuration including debug name
+ * @returns A resource object with reactive loading, error, and data states
+ *
+ * @example
+ * ```typescript
+ * const [userId, setUserId] = createSignal(1);
+ *
+ * const userResource = createResource(userId, async (id) => {
+ *   const response = await fetch(`/api/users/${id}`);
+ *   return response.json();
+ * });
+ *
+ * // Access reactive states
+ * console.log(userResource.loading()); // true while fetching
+ * console.log(userResource.error());   // Error object if fetch failed
+ * console.log(userResource());         // User data when available
+ *
+ * // Change source triggers automatic re-fetch
+ * setUserId(2); // Automatically fetches user with ID 2
+ *
+ * // Handle different states in effects
+ * createEffect(() => {
+ *   if (userResource.loading()) {
+ *     showLoadingSpinner();
+ *   } else if (userResource.error()) {
+ *     showError(userResource.error());
+ *   } else {
+ *     displayUser(userResource());
+ *   }
+ * });
+ * ```
  */
 export function createResource<S, T, E = unknown>(
   source: SignalGetter<S>,

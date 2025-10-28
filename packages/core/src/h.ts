@@ -3,26 +3,108 @@ import { bindEvent, bindAttr, bindClassList, bindStyle } from './dom/bindings';
 import { createEffect } from './primitives/effect';
 import type { SignalGetter } from './types';
 
+/**
+ * Represents a child element that can be rendered in the DOM.
+ * Can be a static value (Node, string, number) or a reactive value (signal, memo).
+ */
 type Child = Node | string | number | SignalGetter<any> | (() => Node);
 
+/**
+ * Processes a child element, handling both static and reactive values.
+ *
+ * For static values (Node, string, number), returns the appropriate DOM node immediately.
+ * For reactive values (signals/memos), creates an effect that tracks changes and updates
+ * the DOM automatically.
+ *
+ * @param child - The child to process
+ * @returns A DOM Node that can be appended to the document
+ *
+ * @example
+ * ```typescript
+ * // Static children
+ * processChild("Hello") // → Text node with "Hello"
+ * processChild(document.createElement('div')) // → The div element
+ *
+ * // Reactive children
+ * const [count] = createSignal(0)
+ * processChild(count) // → Text node that updates when count changes
+ * ```
+ */
 function processChild(child: Child): Node {
+  // 1. Static nodes are returned directly.
   if (child instanceof Node) {
     return child;
   }
-  // Check if it's a function (could be a signal or a memo)
+
+  // 2. Handle reactive functions (signals/memos).
   if (typeof child === 'function') {
-    const textNode = document.createTextNode('');
-    // Use createEffect directly for text binding to avoid circular dependencies if h is used inside a binder
+    // --- THE FIX: Synchronous Initial Render ---
+    const initialValue = (child as SignalGetter<any>)();
+    let currentRenderedNode: Node;
+
+    // a. Create the initial node synchronously based on the first value.
+    if (initialValue instanceof Node) {
+      currentRenderedNode = initialValue;
+    } else {
+      const textValue = initialValue === null || initialValue === undefined ? '' : String(initialValue);
+      currentRenderedNode = document.createTextNode(textValue);
+    }
+
+    // b. Create an effect for subsequent updates only.
     createEffect(() => {
       const value = (child as SignalGetter<any>)();
-      textNode.textContent = value === null || value === undefined ? '' : String(value);
+      const parent = currentRenderedNode.parentNode;
+
+      // Skip the first run if it's the same as the initial value, or handle updates.
+      // This is a micro-optimization; the main logic handles replacement correctly.
+      
+      if (value instanceof Node) {
+        if (currentRenderedNode !== value) {
+          parent?.replaceChild(value, currentRenderedNode);
+          currentRenderedNode = value;
+        }
+      } else {
+        const textValue = value === null || value === undefined ? '' : String(value);
+        if (currentRenderedNode instanceof Text) {
+          if (currentRenderedNode.textContent !== textValue) {
+            currentRenderedNode.textContent = textValue;
+          }
+        } else {
+          const textNode = document.createTextNode(textValue);
+          parent?.replaceChild(textNode, currentRenderedNode);
+          currentRenderedNode = textNode;
+        }
+      }
     });
-    return textNode;
+
+    return currentRenderedNode;
   }
-  // For static strings and numbers
+
+  // 3. Handle static primitives.
   return document.createTextNode(String(child));
 }
 
+/**
+ * Creates a hyperscript function for a specific HTML tag.
+ *
+ * The returned function accepts attributes/properties as the first argument (if it's an object)
+ * and children as subsequent arguments. It handles reactive attributes and children automatically.
+ *
+ * @param tag - The HTML tag name (e.g., 'div', 'span', 'button')
+ * @returns A function that creates HTMLElement instances with the specified tag
+ *
+ * @example
+ * ```typescript
+ * const div = hyperscript('div');
+ *
+ * // Create a div with attributes and children
+ * const element = div(
+ *   { class: 'container', id: 'main' },
+ *   'Hello ',
+ *   createSignal('World') // Reactive child
+ * );
+ * ```
+ */
 function hyperscript(tag: string) {
   return (...args: any[]): HTMLElement => {
     const el = document.createElement(tag);
@@ -81,6 +163,29 @@ function hyperscript(tag: string) {
   };
 }
 
+/**
+ * The main hyperscript helper for creating DOM elements with reactive capabilities.
+ *
+ * This is a proxy object that provides methods for every HTML tag. Each method
+ * returns a function that creates HTMLElement instances with reactive attributes
+ * and children.
+ *
+ * @example
+ * ```typescript
+ * import { h, createSignal } from 'aided-core';
+ *
+ * const [count, setCount] = createSignal(0);
+ *
+ * // Create reactive elements
+ * const button = h.button(
+ *   {
+ *     onClick: () => setCount(count() + 1),
+ *     class: () => count() > 5 ? 'active' : 'inactive'
+ *   },
+ *   'Count: ', count // Reactive child
+ * );
+ * ```
+ */
 export const h = new Proxy({}, {
   get(_target, prop: string) {
     return hyperscript(prop);

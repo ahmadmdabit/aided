@@ -18,8 +18,20 @@ export const dirtyEffects = new Set<Subscriber>();
 export let isBatching = false;
 
 /**
- * Schedules a flush of the dirty effects queue to run in the next microtask.
- * This is the core of our batching mechanism.
+ * Schedules a flush of all dirty effects to run in the next microtask.
+ *
+ * This function implements Aided's batching mechanism. When signals change,
+ * dependent effects are marked as "dirty" but don't execute immediately.
+ * Instead, they're batched together and executed asynchronously in a microtask.
+ * This prevents redundant re-executions and ensures consistent state updates.
+ *
+ * The batching works by:
+ * 1. Signal writes mark dependent effects as dirty
+ * 2. Multiple synchronous writes can occur before any effects run
+ * 3. A single microtask schedules execution of all dirty effects
+ * 4. Effects run in dependency order when possible
+ *
+ * @internal This is an internal scheduling function
  */
 export function flushQueue() {
   // If we are already in a batch or a flush is already scheduled, do nothing.
@@ -41,8 +53,18 @@ export function flushQueue() {
 }
 
 /**
- * Cleans up an effect by removing it from all of its dependencies (the signals it subscribes to).
- * This is crucial for preventing memory leaks.
+ * Removes an effect from all signals it was subscribed to.
+ *
+ * This cleanup process is essential for preventing memory leaks. When effects
+ * are disposed or re-executed, they must be removed from their dependency lists
+ * in all signals they previously accessed. Without this cleanup, signals would
+ * retain references to dead effects, preventing garbage collection.
+ *
+ * The cleanup iterates through all dependency sets (signals) that the effect
+ * is subscribed to and removes the effect from each set.
+ *
+ * @param effect The subscriber (effect) to clean up
+ * @internal This is an internal cleanup function
  */
 export function cleanup(effect: Subscriber) {
   for (const dependency of effect.dependencies) {

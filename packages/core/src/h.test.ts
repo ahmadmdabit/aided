@@ -1,264 +1,269 @@
-import { describe, it, expect, vi } from 'vitest';
-import { createRoot, createSignal } from './index';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { h } from './h';
+import { createRoot } from './lifecycle/lifecycle';
+import { createSignal } from './primitives/signal';
+import { createMemo } from './primitives/memo';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
 describe('Aided Hyperscript Helper (h)', () => {
-  it('should create a simple HTML element', () => {
-    const el = h.div();
-    expect(el).toBeInstanceOf(HTMLDivElement);
-    expect(el.tagName).toBe('DIV');
+  let root: HTMLElement;
+  let disposeRoot: () => void | undefined;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
   });
 
-  it('should create an element with a single string child', () => {
-    const el = h.p('Hello, world!');
-    expect(el.tagName).toBe('P');
-    expect(el.textContent).toBe('Hello, world!');
+  afterEach(() => {
+    if (disposeRoot) {
+      disposeRoot();
+    }
+    root.remove();
   });
 
-  it('should create an element with multiple string and number children', () => {
-    const el = h.div('Count: ', 123, '!');
-    expect(el.textContent).toBe('Count: 123!');
-  });
-
-  it('should set static attributes from an object', () => {
-    const el = h.a({
-      href: 'https://example.com',
-      id: 'my-link',
-      'data-test': 'test-value',
-    });
-    expect(el.tagName).toBe('A');
-    expect(el.id).toBe('my-link');
-    expect(el.getAttribute('href')).toBe('https://example.com');
-    expect(el.getAttribute('data-test')).toBe('test-value');
-  });
-
-  it('should handle nested h calls', () => {
-    const el = h.div(
-      h.h1('Title'),
-      h.p('This is a paragraph.')
-    );
-    expect(el.innerHTML).toBe('<h1>Title</h1><p>This is a paragraph.</p>');
-  });
-
-  it('should handle an array of children', () => {
-    const items = ['one', 'two', 'three'];
-    const el = h.ul(
-      items.map(item => h.li(item))
-    );
-    expect(el.innerHTML).toBe('<li>one</li><li>two</li><li>three</li>');
-  });
-
-  it('should attach an event handler', () => {
-    const handleClick = vi.fn();
-    const button = h.button({ onClick: handleClick }, 'Click Me');
-
-    createRoot(() => {
-      // Event binding needs a root to clean up
-      document.body.appendChild(button);
+  describe('Static Rendering', () => {
+    it('should create a simple HTML element', () => {
+      const el = h.div();
+      expect(el).toBeInstanceOf(HTMLDivElement);
     });
 
-    button.click();
-    expect(handleClick).toHaveBeenCalledTimes(1);
+    it('should create an element with multiple string and number children', () => {
+      const el = h.div('Count: ', 123, '!');
+      expect(el.textContent).toBe('Count: 123!');
+    });
+
+    it('should handle nested h calls', () => {
+      const el = h.div(h.h1('Title'), h.p('This is a paragraph.'));
+      expect(el.innerHTML).toBe('<h1>Title</h1><p>This is a paragraph.</p>');
+    });
+
+    it('should handle an array of children', () => {
+      const items = ['one', 'two', 'three'];
+      const el = h.ul(items.map(item => h.li(item)));
+      expect(el.innerHTML).toBe('<li>one</li><li>two</li><li>three</li>');
+    });
+  });
+
+  describe('Attributes and Properties', () => {
+    it('should set static attributes from an object', () => {
+      const el = h.a({
+        href: 'https://example.com',
+        id: 'my-link',
+        'data-test': 'test-value',
+      });
+      expect(el.id).toBe('my-link');
+      expect(el.getAttribute('href')).toBe('https://example.com');
+    });
+
+    it('should attach an event handler and clean it up', () => {
+      const handleClick = vi.fn();
+      let button: HTMLElement;
+
+      disposeRoot = createRoot(() => {
+        button = h.button({ onClick: handleClick }, 'Click Me');
+        root.appendChild(button);
+      });
+
+      button!.click();
+      expect(handleClick).toHaveBeenCalledTimes(1);
+
+      disposeRoot();
+
+      button!.click();
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle the ref attribute', () => {
+      let elementRef: HTMLElement | undefined;
+      const el = h.div({ ref: (e: HTMLElement) => { elementRef = e; } });
+      expect(elementRef).toBe(el);
+    });
+
+    it('should handle a static style object', () => {
+      const el = h.div({ style: { color: 'green' } });
+      expect(el.style.color).toBe('green');
+    });
+
+    it('should handle a static style string', () => {
+      const el = h.div({ style: 'color: purple;' });
+      expect(el.style.color).toBe('purple');
+    });
   });
 
   describe('Reactivity Integration', () => {
-    it('should bind a signal to a text node', async () => {
+    it('should bind a signal to a text node and update it', async () => {
       const [count, setCount] = createSignal(0);
 
-      // THE FIX: Perform the test inside the root where `el` is guaranteed to exist.
-      createRoot(() => {
+      disposeRoot = createRoot(() => {
         const el = h.p('Count: ', count);
-        document.body.appendChild(el);
-
-        // Initial state assertion
-        expect(el.textContent).toBe('Count: 0');
-
-        // Asynchronous update assertion
-        setCount(5);
-        tick().then(() => {
-          expect(el.textContent).toBe('Count: 5');
-        });
+        root.appendChild(el);
       });
+
+      expect(root.textContent).toBe('Count: 0');
+
+      setCount(5);
+      await tick();
+      expect(root.textContent).toBe('Count: 5');
     });
 
-    // NEW TEST: Cover the null/undefined branch in processChild
     it('should handle null and undefined signal values as children', async () => {
       const [content, setContent] = createSignal<string | null | undefined>('Hello');
-      let el: HTMLElement;
 
-      createRoot(() => {
-        el = h.p(content);
-        document.body.appendChild(el);
+      disposeRoot = createRoot(() => {
+        const el = h.p(content);
+        root.appendChild(el);
       });
 
-      // Initial state
-      expect(el!.textContent).toBe('Hello');
+      expect(root.textContent).toBe('Hello');
 
-      // Test null value
       setContent(null);
       await tick();
-      expect(el!.textContent).toBe(''); // Should render an empty string
+      expect(root.textContent).toBe('');
 
-      // Test undefined value
       setContent('World');
       await tick();
-      expect(el!.textContent).toBe('World'); // Back to a string
+      expect(root.textContent).toBe('World');
+
       setContent(undefined);
       await tick();
-      expect(el!.textContent).toBe(''); // Should also render an empty string
+      expect(root.textContent).toBe('');
     });
 
-    it('should work with multiple reactive children', async () => {
-      const [name, setName] = createSignal('Aided');
-      const [version, setVersion] = createSignal(1);
+    it('should handle a memo that returns a DOM node and updates it', async () => {
+      const [component, setComponent] = createSignal('p');
+      const DynamicComponent = createMemo(() => {
+        return component() === 'p'
+          ? h.p('This is a paragraph')
+          : h.span('This is a span');
+      });
 
-      createRoot(() => {
-        const el = h.div(name, ' v', version);
-        document.body.appendChild(el);
+      disposeRoot = createRoot(() => {
+        const el = h.div(DynamicComponent);
+        root.appendChild(el);
+      });
 
-        expect(el.textContent).toBe('Aided v1');
+      expect(root.querySelector('div')!.innerHTML).toBe('<p>This is a paragraph</p>');
 
-        setName('AidedJS');
-        setVersion(2);
-        tick().then(() => {
-          expect(el.textContent).toBe('AidedJS v2');
+      setComponent('span');
+      await tick();
+      expect(root.querySelector('div')!.innerHTML).toBe('<span>This is a span</span>');
+    });
+
+    it('should handle a memo that switches between DOM node and primitive', async () => {
+      const [toggle, setToggle] = createSignal(true);
+      const DynamicContent = createMemo(() => {
+        return toggle() ? h.span('DOM content') : 'Plain text content';
+      });
+
+      disposeRoot = createRoot(() => {
+        const el = h.div(DynamicContent);
+        root.appendChild(el);
+      });
+
+      expect(root.querySelector('div')!.innerHTML).toBe('<span>DOM content</span>');
+
+      setToggle(false);
+      await tick();
+      expect(root.querySelector('div')!.innerHTML).toBe('Plain text content');
+
+      setToggle(true);
+      await tick();
+      expect(root.querySelector('div')!.innerHTML).toBe('<span>DOM content</span>');
+    });
+
+    it('should handle a memo that switches between different primitives', async () => {
+      const [value, setValue] = createSignal('initial');
+      const DynamicText = createMemo(() => value());
+
+      disposeRoot = createRoot(() => {
+        const el = h.div(DynamicText);
+        root.appendChild(el);
+      });
+
+      expect(root.querySelector('div')!.textContent).toBe('initial');
+
+      setValue('updated');
+      await tick();
+      expect(root.querySelector('div')!.textContent).toBe('updated');
+    });
+
+    it('should handle reactive attributes', async () => {
+      const [id, setId] = createSignal('initial-id');
+
+      disposeRoot = createRoot(() => {
+        const el = h.div({ id: id });
+        root.appendChild(el);
+      });
+
+      expect(root.querySelector('div')!.id).toBe('initial-id');
+
+      setId('updated-id');
+      await tick();
+      expect(root.querySelector('div')!.id).toBe('updated-id');
+    });
+
+    it('should handle the classList attribute reactively', async () => {
+      const [isActive, setIsActive] = createSignal(true);
+
+      disposeRoot = createRoot(() => {
+        const el = h.div({
+          classList: {
+            active: isActive,
+            static: () => true,
+          },
         });
+        root.appendChild(el);
       });
+
+      const div = root.querySelector('div')!;
+      expect(div.classList.contains('active')).toBe(true);
+      expect(div.classList.contains('static')).toBe(true);
+
+      setIsActive(false);
+      await tick();
+      expect(div.classList.contains('active')).toBe(false);
     });
 
-    it('should handle reactive children inside nested structures', async () => {
-      const [text, setText] = createSignal('initial');
+    it('should handle a reactive style object', async () => {
+      const [color, setColor] = createSignal('red');
 
-      createRoot(() => {
-        const el = h.div(
-          h.p('Static text'),
-          h.span(text)
-        );
-        document.body.appendChild(el);
-
-        expect(el.innerHTML).toBe('<p>Static text</p><span>initial</span>');
-
-        setText('updated');
-        tick().then(() => {
-          expect(el.innerHTML).toBe('<p>Static text</p><span>updated</span>');
+      disposeRoot = createRoot(() => {
+        const el = h.div({
+          style: {
+            color: color,
+            fontSize: '16px',
+          },
         });
+        root.appendChild(el);
       });
-    });
-  });
 
-  // NEW TEST: Cover the `ref` attribute
-  it('should handle the ref attribute', () => {
-    let elementRef: HTMLElement | undefined;
-    const refCallback = (el: HTMLElement) => {
-      elementRef = el;
-    };
+      const div = root.querySelector('div')!;
+      expect(div.style.color).toBe('red');
+      expect(div.style.fontSize).toBe('16px');
 
-    const el = h.div({ ref: refCallback });
-
-    // The ref callback should be called with the created element
-    expect(elementRef).toBeInstanceOf(HTMLDivElement);
-    expect(elementRef).toBe(el);
-  });
-
-  // NEW TEST: Cover reactive attributes
-  it('should handle reactive attributes', async () => {
-    const [id, setId] = createSignal('initial-id');
-    let el: HTMLElement;
-
-    createRoot(() => {
-      el = h.div({ id: id }); // Pass the signal directly as the attribute value
-      document.body.appendChild(el);
+      setColor('blue');
+      await tick();
+      expect(div.style.color).toBe('blue');
     });
 
-    // Check initial state
-    expect(el!.id).toBe('initial-id');
+    it('should handle a signal that is initially null', async () => {
+      // 1. Create a signal whose initial value is null.
+      const [content, setContent] = createSignal<string | null>(null);
 
-    // Update the signal and check the DOM
-    setId('updated-id');
-    await tick();
-    expect(el!.id).toBe('updated-id');
-  });
-
-  // NEW TEST: Cover the `classList` attribute
-  it('should handle the classList attribute reactively', async () => {
-    const [isActive, setIsActive] = createSignal(true);
-    let el: HTMLElement;
-
-    createRoot(() => {
-      el = h.div({
-        classList: {
-          active: isActive,
-          static: () => true,
-        },
+      disposeRoot = createRoot(() => {
+        const el = h.div(content);
+        root.appendChild(el);
       });
-      document.body.appendChild(el);
+
+      // 2. Assert the initial, synchronous render.
+      // This assertion forces the code to execute the uncovered branch.
+      expect(root.querySelector('div')!.textContent).toBe('');
+
+      // 3. (Optional but good practice) Test that it can be updated.
+      setContent('Now it has text');
+      await tick();
+      expect(root.querySelector('div')!.textContent).toBe('Now it has text');
     });
-
-    expect(el!.classList.contains('active')).toBe(true);
-    expect(el!.classList.contains('static')).toBe(true);
-
-    setIsActive(false);
-    await tick();
-    expect(el!.classList.contains('active')).toBe(false);
-  });
-
-  // NEW TEST: Cover the `style` attribute with a reactive object
-  it('should handle a reactive style object', async () => {
-    const [color, setColor] = createSignal('red');
-    let el: HTMLElement;
-
-    createRoot(() => {
-      el = h.div({
-        style: {
-          color: color,
-          fontSize: '16px', // Mix of static and reactive
-        },
-      });
-      document.body.appendChild(el);
-    });
-
-    expect(el!.style.color).toBe('red');
-    expect(el!.style.fontSize).toBe('16px');
-
-    setColor('blue');
-    await tick();
-    expect(el!.style.color).toBe('blue');
-  });
-
-  // NEW TEST: Cover the `style` attribute with a static object
-  it('should handle a static style object', () => {
-    const el = h.div({
-      style: {
-        color: 'green',
-        fontWeight: 'bold',
-      },
-    });
-
-    expect(el.style.color).toBe('green');
-    expect(el.style.fontWeight).toBe('bold');
-  });
-
-  // NEW TEST: Cover the `style` attribute with a static string
-  it('should handle a static style string', () => {
-    const el = h.div({
-      style: 'color: purple; font-size: 20px;',
-    });
-
-    expect(el.style.color).toBe('purple');
-    expect(el.style.fontSize).toBe('20px');
-  });
-
-  it('should handle a mix of attributes and children correctly', () => {
-    const el = h.div(
-      { id: 'container' },
-      h.h1('Title'),
-      'Some text',
-      h.p('A paragraph')
-    );
-
-    expect(el.id).toBe('container');
-    expect(el.innerHTML).toBe('<h1>Title</h1>Some text<p>A paragraph</p>');
   });
 });

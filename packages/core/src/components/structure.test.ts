@@ -1,5 +1,7 @@
+import { createRoot } from '../lifecycle/lifecycle';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createRoot, Fragment, Portal } from './../index';
+import { Fragment } from './Fragment';
+import { Portal } from './Portal';
 
 describe('Aided Structural Components', () => {
   let root: HTMLElement;

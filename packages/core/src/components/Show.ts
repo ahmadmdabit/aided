@@ -1,17 +1,47 @@
 import { createEffect } from '../primitives/effect';
-import { createRoot, onCleanup } from '../lifecycle/lifecycle';  // Added import for onCleanup
+import { createRoot, onCleanup } from '../lifecycle/lifecycle';
 import type { Disposer, SignalGetter } from '../types';
 
+/**
+ * Props for the Show component that conditionally renders content.
+ */
 type ShowProps<T> = {
+  /** Signal that determines whether to show children or fallback */
   when: SignalGetter<T>;
+  /** Optional function that returns content to show when condition is falsy */
   fallback?: () => Node;
+  /** Function that returns content to show when condition is truthy */
   children: () => Node;
 };
 
+/**
+ * Conditionally renders content based on a reactive condition.
+ *
+ * The Show component efficiently switches between showing children or fallback content
+ * based on the truthiness of the `when` signal. Each conditional branch gets its own
+ * reactive scope for proper cleanup when switching.
+ *
+ * @param props Configuration object with when, children, and optional fallback
+ * @returns A DocumentFragment that conditionally contains the rendered content
+ *
+ * @example
+ * ```typescript
+ * const [isLoggedIn, setLoggedIn] = createSignal(false);
+ *
+ * const content = Show({
+ *   when: isLoggedIn,
+ *   fallback: () => h.p('Please log in'),
+ *   children: () => h.p('Welcome back!')
+ * });
+ *
+ * // Shows "Please log in" initially, switches to "Welcome back!" when logged in
+ * ```
+ */
 export function Show<T>(props: ShowProps<T>): Node {
   const { when, fallback, children } = props;
   const container = document.createDocumentFragment();
-  const endMarker = document.createTextNode('');  // Added: Invisible marker for insertion point
+  // End marker provides stable insertion point for conditional content
+  const endMarker = document.createTextNode('');
   container.appendChild(endMarker);
   let currentDisposer: Disposer | null = null;
 

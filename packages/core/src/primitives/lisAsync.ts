@@ -1,13 +1,37 @@
 import LISWorker from './lis.worker.ts?worker';
 
 /**
- * Finds the LIS of a sequence asynchronously in a Web Worker.
+ * Computes the Longest Increasing Subsequence (LIS) asynchronously using a Web Worker.
  *
- * This is the recommended approach for extremely large arrays to avoid blocking the main UI thread.
+ * This function is recommended for large arrays (>1000 elements) to prevent blocking
+ * the main UI thread during computationally intensive LIS calculations. It transfers
+ * the TypedArray to a worker thread for processing and returns a Promise that resolves
+ * with the LIS indices.
  *
- * @param seq The sequence of numbers. Must be a TypedArray for zero-copy transfer.
- * @returns A Promise that resolves with the array of LIS indices.
- * @throws An error if the worker computation fails or times out.
+ * The function uses zero-copy transfer of the TypedArray buffer to the worker for
+ * optimal performance. A timeout prevents hanging computations.
+ *
+ * @param seq The sequence of numbers as a TypedArray for efficient transfer to worker
+ * @returns Promise resolving to array of LIS indices, or rejecting on error/timeout
+ * @throws Error if worker computation fails or times out after 30 seconds
+ *
+ * @example
+ * ```typescript
+ * // For large lists that might block the UI
+ * const largeList = new Uint32Array(5000);
+ * // ... populate array ...
+ *
+ * try {
+ *   const lisIndices = await longestIncreasingSubsequenceAsync(largeList);
+ *   console.log('LIS indices:', lisIndices);
+ * } catch (error) {
+ *   console.error('LIS computation failed:', error);
+ * }
+ *
+ * // Compare with sync version for small arrays
+ * const smallList = [3, 1, 4, 1, 5];
+ * const syncResult = longestIncreasingSubsequence(smallList); // Faster for small arrays
+ * ```
  */
 export function longestIncreasingSubsequenceAsync(
   seq: Int32Array | Uint32Array | Float32Array | Float64Array

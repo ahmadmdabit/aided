@@ -1,5 +1,7 @@
+import { createRoot } from '../lifecycle/lifecycle';
+import { createSignal } from '../primitives/signal';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createSignal, createRoot, createResource } from '../index';
+import { createResource } from './resource';
 
 // A more advanced tick helper for finer control
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));

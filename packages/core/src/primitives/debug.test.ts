@@ -1,5 +1,8 @@
+import { hasOwner } from '../lifecycle/lifecycle';
+import { createEffect } from '../primitives/effect';
+import { createSignal } from '../primitives/signal';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createSignal, createEffect, createMemo, hasOwner } from '../index';
+import { createMemo } from './memo';
 
 describe('Aided Debugging Utilities', () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;

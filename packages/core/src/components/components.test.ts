@@ -1,12 +1,9 @@
+import { createRoot, onCleanup } from '../lifecycle/lifecycle';
+import { createEffect } from '../primitives/effect';
+import { createSignal } from '../primitives/signal';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  createSignal,
-  createRoot,
-  onCleanup,
-  createEffect,
-  Show,
-  For,
-} from '../index';
+import { Show } from './Show';
+import { For } from './For';
 
 // Helper to wait for the next microtask queue flush
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));

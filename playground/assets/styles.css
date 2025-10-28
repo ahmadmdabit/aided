@@ -1,0 +1,885 @@
+/* ========================================
+   CSS VARIABLES & THEME SYSTEM
+   ======================================== */
+
+:root {
+  /* Base font */
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Accent color (primary action) */
+  --accent: #0ed34a;
+  --accent-hover: #0bc042;
+  --accent-active: #09a83a;
+
+  /* Typography */
+  --font-size-base: 1rem;
+  --font-size-sm: 0.875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-h2: 1.25rem;
+  --font-size-h3: 1.125rem;
+
+  /* Radius */
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 9px;
+
+  /* Shadows & effects */
+  --shadow-focus: 0 0 3px 2px rgba(14, 211, 74, 0.4);
+
+  /* Default dark theme */
+  --bg-body: #121212;
+  --bg-surface: #1a1a1a;
+  --bg-sidebar: #1e1e1e;
+  --bg-panel: #1a1a1a;
+  --bg-input: #2a2a2a;
+  --bg-button: #2a2a2a;
+  --bg-button-hover: #333;
+
+  --border-color: #333;
+  --border-color-light: #2a2a2a;
+
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --text-link: var(--accent);
+  --text-link-hover: var(--accent-hover);
+
+  --row-border: #2a2a2a;
+
+  /* Status colors (dark mode) */
+  --status-success: #0ed34a;
+  /* your accent */
+  --status-success-bg: #0a2a1a;
+  --status-success-border: #0bc042;
+  --status-success-text: #88e6a0;
+
+  --status-error: #ff5571;
+  --status-error-bg: #2a1518;
+  --status-error-border: #da2f54;
+  --status-error-text: #ffa0b8;
+
+  --status-warning: #ffaa33;
+  --status-warning-bg: #2a2210;
+  --status-warning-border: #ff9922;
+  --status-warning-text: #ffd999;
+
+  --status-info: #5d9dff;
+  --status-info-bg: #151f2a;
+  --status-info-border: #4d8dff;
+  --status-info-text: #aaccff;
+
+  --status-default: var(--text-secondary);
+  --status-default-bg: var(--bg-input);
+  --status-default-border: var(--border-color-light);
+  --status-default-text: var(--text-primary);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-body: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-sidebar: #f8f9fa;
+    --bg-panel: #f8f9fa;
+    --bg-input: #ffffff;
+    --bg-button: #f0f0f0;
+    --bg-button-hover: #e0e0e0;
+
+    --border-color: #ddd;
+    --border-color-light: #eee;
+
+    --text-primary: #212529;
+    --text-secondary: #495057;
+    --text-muted: #888;
+    --text-link: var(--accent);
+    --text-link-hover: var(--accent-hover);
+
+    --row-border: #eee;
+
+    /* Status colors (light mode) */
+    --status-success: #0ed34a;
+    --status-success-bg: #e8f7ee;
+    --status-success-border: #0bc042;
+    --status-success-text: #0a7d2e;
+
+    --status-error: #ff5571;
+    --status-error-bg: #ffa0b8;
+    --status-error-border: #da2f54;
+    --status-error-text: #2a1518;
+
+    --status-warning: #ffaa33;
+    --status-warning-bg: #fff8e6;
+    --status-warning-border: #ff9922;
+    --status-warning-text: #b36600;
+
+    --status-info: #5d9dff;
+    --status-info-bg: #eef5ff;
+    --status-info-border: #4d8dff;
+    --status-info-text: #2a5fcc;
+
+    --status-default: #666;
+    --status-default-bg: #f5f5f5;
+    --status-default-border: #ddd;
+    --status-default-text: #333;
+  }
+}
+
+/* ========================================
+   RESETS & BASE STYLES
+   ======================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: var(--font-family);
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text-primary);
+  background-color: var(--bg-body);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 var(--space-3);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  color: var(--text-secondary);
+}
+
+h3 {
+  font-size: var(--font-size-h3);
+  margin-bottom: var(--space-2);
+}
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  color: var(--text-link-hover);
+}
+
+/* Optional: Add to your CSS */
+img,
+video,
+canvas,
+iframe,
+embed,
+object {
+  max-width: 100%;
+  height: auto;
+}
+
+p,
+ul,
+ol {
+  margin: 0 0 var(--space-3);
+}
+
+ul,
+ol {
+  padding-left: 1.25rem;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
+  background: var(--bg-input);
+  padding: 0.125em 0.25em;
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+}
+
+pre {
+  background: var(--bg-input);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  overflow: auto;
+}
+
+/* Basic form controls */
+input:not([type="number"]),
+textarea,
+select {
+  width: 100%;
+  padding: 0.5em 0.75em;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+button {
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0.6em 1.2em;
+  background-color: var(--bg-button);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+  margin-right: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+button:hover {
+  background-color: var(--bg-button-hover);
+  border-color: var(--accent);
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ========================================
+   FORM CONTROLS (Complete Set)
+   ======================================== */
+
+/* Shared base for all form controls */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+}
+
+/* --- Text Inputs & Textarea --- */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="url"],
+textarea {
+  width: 100%;
+  padding: 0.6em 0.8em;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Focus state */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Disabled input */
+input:disabled,
+textarea:disabled {
+  background: var(--bg-button);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* --- Select --- */
+select {
+  width: 100%;
+  padding: 0.6em 1.2em 0.6em 0.8em;
+  background: var(--bg-input) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right 0.6em center/12px 12px;
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select:disabled {
+  background: var(--bg-button) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23555' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right 0.6em center/12px 12px;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* --- Checkboxes & Radios (if used outside todo) --- */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+/* --- Buttons --- */
+button {
+  padding: 0.6em 1.2em;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-button);
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Primary button (accent) */
+.btn-primary {
+  background-color: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* Disabled button */
+button:disabled,
+.btn-primary:disabled {
+  background-color: var(--bg-button);
+  color: var(--text-muted);
+  border-color: transparent;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Focus state for all buttons */
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* --- Form Groups (optional but useful) --- */
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.form-group small {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* --- Validation States (optional) --- */
+.is-invalid {
+  border-color: var(--status-error) !important;
+}
+
+.is-invalid:focus {
+  box-shadow: 0 0 0 2px rgba(255, 85, 85, 0.3) !important;
+}
+
+.is-valid {
+  border-color: var(--status-success) !important;
+}
+
+.is-valid:focus {
+  box-shadow: 0 0 0 2px rgba(14, 211, 74, 0.3) !important;
+}
+
+/* ========================================
+   TABLE STYLES
+   ======================================== */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+/* Header */
+.table thead {
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--font-size-sm);
+}
+
+/* Body & Cells */
+.table tbody tr {
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: top;
+}
+
+/* Hover effect (optional but useful) */
+.table tbody tr:hover {
+  background-color: var(--bg-input);
+}
+
+/* Compact variant */
+.table--compact th,
+.table--compact td {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* Striped variant */
+.table--striped tbody tr:nth-child(even) {
+  background-color: var(--bg-input);
+}
+
+.table--striped tbody tr:nth-child(even):hover {
+  background-color: var(--bg-button-hover);
+}
+
+/* Bordered variant */
+.table--bordered {
+  border: 1px solid var(--border-color);
+}
+
+.table--bordered th,
+.table--bordered td {
+  border-right: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.table--bordered th:last-child,
+.table--bordered td:last-child {
+  border-right: none;
+}
+
+.table--bordered tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Responsive wrapper (for small screens) */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Accent cell (e.g., status, actions) */
+.table-accent {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.table-accent:hover {
+  color: var(--accent-hover);
+}
+
+/* ========================================
+   TABLE SORT INDICATORS
+   ======================================== */
+
+/* Base style for sortable headers */
+.table th {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  /* Prevent text selection on double-click */
+  transition: color 0.2s;
+}
+
+/* Only apply sort styles to headers with .active */
+.table th.active {
+  color: var(--accent);
+}
+
+/* Shared icon container */
+.table th::after {
+  content: '';
+  position: absolute;
+  right: var(--space-3);
+  width: 0;
+  height: 0;
+  opacity: 0.5;
+  border-style: solid;
+  border-width: 0;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+/* Ascending: ▲ */
+.table th.asc::after {
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 0 4px 5px 4px;
+  border-color: transparent transparent var(--accent) transparent;
+}
+
+/* Descending: ▼ */
+.table th.desc::after {
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px 4px 0 4px;
+  border-color: var(--accent) transparent transparent transparent;
+}
+
+/* Hover effect on sortable headers */
+.table th:not(.active):hover {
+  color: var(--text-link-hover);
+}
+
+/* ========================================
+   BORDERLESS TABLE WITH ALTERNATE ROWS
+   ======================================== */
+
+.table--borderless {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Remove all borders */
+.table--borderless thead th {
+  border: none;
+}
+
+.table--borderless tbody tr {
+  border: none;
+}
+
+.table--borderless th,
+.table--borderless td {
+  border: none;
+}
+
+/* Alternate row background (zebra striping) */
+.table--borderless tbody tr:nth-child(even) {
+  background-color: var(--bg-input);
+}
+
+.table--borderless tbody tr:nth-child(odd) {
+  background-color: transparent;
+}
+
+/* Optional: Slightly darker background on hover */
+.table--borderless tbody tr:hover {
+  background-color: var(--bg-button-hover) !important;
+}
+
+/* Ensure header stands out */
+.table--borderless thead th {
+  background: var(--bg-body);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ========================================
+   LAYOUT: PLAYGROUND
+   ======================================== */
+
+.playground-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background: var(--bg-surface);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: var(--bg-sidebar);
+  padding: var(--space-6) var(--space-4);
+  border-right: 1px solid var(--border-color);
+  overflow: auto;
+}
+
+.sidebar h2 {
+  margin-bottom: var(--space-5);
+  color: var(--text-secondary);
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sidebar button {
+  width: 100%;
+  text-align: left;
+  padding: 0.6em 1em;
+  margin: 0;
+}
+
+.sidebar button:hover {
+  background: var(--bg-button-hover);
+}
+
+.sidebar button.active,
+.sidebar button.active:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* Main Content */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  padding: var(--space-3);
+}
+
+/* App Grid */
+.app {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+  width: 100%;
+}
+
+/* Control Panel */
+.panel {
+  padding: var(--space-3);
+  border-right: 1px solid var(--border-color);
+  overflow: auto;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.controls label {
+  display: block;
+  margin: var(--space-4) 0 var(--space-1);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.controls>div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.controls button {
+  margin: 0;
+  padding: 0.4em 0.8em;
+  font-size: var(--font-size-sm);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color-light);
+}
+
+.controls input[type='number'] {
+  width: 100%;
+  padding: 0.5em 0.75em;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.controls input[type='number']:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.stats {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* Scroller & Rows */
+.scroller {
+  height: 100%;
+  overflow: auto;
+  background: var(--bg-surface);
+}
+
+.row {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--row-border);
+  will-change: transform;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* ========================================
+   STATUS UTILITY CLASSES
+   ======================================== */
+
+/* Text colors */
+.text-success {
+  color: var(--status-success-text) !important;
+}
+
+.text-error {
+  color: var(--status-error-text) !important;
+}
+
+.text-warning {
+  color: var(--status-warning-text) !important;
+}
+
+.text-info {
+  color: var(--status-info-text) !important;
+}
+
+.text-default {
+  color: var(--status-default-text) !important;
+}
+
+/* Backgrounds */
+.bg-success {
+  background-color: var(--status-success-bg) !important;
+}
+
+.bg-error {
+  background-color: var(--status-error-bg) !important;
+}
+
+.bg-warning {
+  background-color: var(--status-warning-bg) !important;
+}
+
+.bg-info {
+  background-color: var(--status-info-bg) !important;
+}
+
+.bg-default {
+  background-color: var(--status-default-bg) !important;
+}
+
+/* Borders */
+.border-success {
+  border-color: var(--status-success-border) !important;
+}
+
+.border-error {
+  border-color: var(--status-error-border) !important;
+}
+
+.border-warning {
+  border-color: var(--status-warning-border) !important;
+}
+
+.border-info {
+  border-color: var(--status-info-border) !important;
+}
+
+.border-default {
+  border-color: var(--status-default-border) !important;
+}
+
+/* Inline status badges (optional but useful) */
+.badge {
+  display: inline-block;
+  padding: 0.125em 0.5em;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-success {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+  border: 1px solid var(--status-success-border);
+}
+
+.badge-error {
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+  border: 1px solid var(--status-error-border);
+}
+
+.badge-warning {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  border: 1px solid var(--status-warning-border);
+}
+
+.badge-info {
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
+  border: 1px solid var(--status-info-border);
+}
+
+.badge-default {
+  background: var(--status-default-bg);
+  color: var(--status-default-text);
+  border: 1px solid var(--status-default-border);
+}
