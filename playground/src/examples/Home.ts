@@ -20,7 +20,7 @@ const widgetCSS = `
 
   /* Card header */
   .card > header {
-    padding: var(--space-4) var(--space-4) var(--space-3);
+    padding: var(--gap-4) var(--gap-4) var(--gap-3);
     background-color: var(--border-color-light);
   }
 
@@ -32,16 +32,16 @@ const widgetCSS = `
 
   /* Card sections */
   .card > section {
-    padding: var(--space-4);
+    padding: var(--gap-4);
   }
 
   /* Optional: Compact card */
   .card--compact > header {
-    padding: var(--space-3) var(--space-3) var(--space-2);
+    padding: var(--gap-3) var(--gap-3) var(--gap-2);
   }
 
   .card--compact > section {
-    padding: var(--space-3);
+    padding: var(--gap-3);
   }
 `;
 

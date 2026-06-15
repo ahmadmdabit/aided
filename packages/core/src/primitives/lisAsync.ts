@@ -1,6 +1,12 @@
 import LISWorker from './lis.worker.ts?worker';
 
 /**
+ * Response type from the LIS Web Worker.
+ * Either returns the computed LIS indices or an error object.
+ */
+type WorkerResponse = number[] | { error: string };
+
+/**
  * Computes the Longest Increasing Subsequence (LIS) asynchronously using a Web Worker.
  *
  * This function is recommended for large arrays (>1000 elements) to prevent blocking
@@ -50,7 +56,7 @@ export function longestIncreasingSubsequenceAsync(
       reject(new Error('Worker timeout: LIS computation took too long.'));
     }, 30000); // 30-second timeout
 
-    worker.onmessage = (event: MessageEvent<number[] | { error: string }>) => {
+    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
       clearTimeout(timeout);
       worker.terminate();
       

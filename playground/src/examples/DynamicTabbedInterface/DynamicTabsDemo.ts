@@ -42,16 +42,27 @@ export function DynamicTabsDemo() {
   // 2. Create a signal to hold the identifier of the currently active tab.
   const [activeTab, setActiveTab] = createSignal<TabName>('home');
 
+  // Cache to store rendered tab instances
+  const tabInstances = new Map<TabName, Node>();
+
   // 3. THE CORE PATTERN: Create a memo that returns the rendered component.
   // This memo re-runs ONLY when `activeTab` changes.
   const ActiveComponent = createMemo(() => {
     const tabName = activeTab(); // This dependency IS tracked
     console.log("ActiveComponent", tabName);
-    // a. Look up the component function from our map.
-    const ComponentToRender = TABS[tabName];
-    // b. Execute the function to get the DOM nodes.
-    // 2. THE FIX: Execute the child component inside `untrack`
-    return untrack(() => ComponentToRender());
+    
+    // Check if we already have a rendered instance
+    if (!tabInstances.has(tabName)) {
+      // Create and cache the instance only once
+      const ComponentToRender = TABS[tabName];
+      // a. Look up the component function from our map.
+      // b. Execute the function to get the DOM nodes.
+      // 2. THE FIX: Execute the child component inside `untrack`
+      tabInstances.set(tabName, untrack(() => ComponentToRender()));
+    }
+    
+    // Return the cached instance
+    return tabInstances.get(tabName)!;
   });
 
   return h.div(
@@ -63,12 +74,13 @@ export function DynamicTabsDemo() {
         TabButton({
           label: tabName.charAt(0).toUpperCase() + tabName.slice(1),
           onClick: () => setActiveTab(tabName),
-          isActive: () => activeTab() === tabName
+          isActive: () => activeTab() === tabName,
+          'data-testid': `tab-button-${tabName}`
         })
       )
     ),
     h.main(
-      { class: 'tab-content' },
+      { class: 'tab-content', 'data-testid': 'tab-content' },
       // 4. Render the output of the memo. Aided knows how to handle a memo
       // that returns a DOM node, and it will automatically replace the
       // content when the memo re-evaluates.

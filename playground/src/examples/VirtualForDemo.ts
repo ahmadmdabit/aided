@@ -115,11 +115,16 @@ export function VirtualForDemo() {
     each: items,
     itemHeight: itemHeight(),
     overscan: overscan(),
-    class: 'scroller',
-    style: { height: '100%' },
+    containerProps: {
+      className: 'scroller u-scroll hover-scrollbar', // invisible-scrollbar
+      style: { height: '100%' },
+      attributes: [
+        { name: 'data-testid', value: 'virtual-list' },
+      ],
+    },
     placeholder,
     children: (item, index) =>
-      h.div({ class: 'row', role: 'listitem', style: { height: () => `${itemHeight()}px` } },
+      h.div({ class: 'row', role: 'listitem', 'data-testid': `virtual-item-${item.id}`, style: { height: () => `${itemHeight()}px` } },
         `${index}: id=${item.id} text=${item.text}`
       ),
   });

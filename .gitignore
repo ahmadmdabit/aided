@@ -25,6 +25,12 @@ node_modules
 # Ignore test coverage reports
 /coverage/
 
+# TestCafe reports and artifacts
+reports/
+screenshots/
+test-results/
+coverage/
+
 # Ignore IDE and OS files
 .vscode/
 .DS_Store

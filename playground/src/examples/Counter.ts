@@ -6,10 +6,11 @@ export function Counter() {
   // Use the `h` helper to build your UI
   return h.button(
     {
+      'data-testid': 'counter-button',
       // Event handlers are passed as props
       onClick: () => setCount(count() + 1)
     },
     // Reactive children are automatically updated
-    'Count: ', count
+    'Count: ', h.span({ 'data-testid': 'count-display' }, count)
   );
 }

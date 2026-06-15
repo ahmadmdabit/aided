@@ -97,14 +97,14 @@ export function Modal(props) {
       return Portal({
         mount: document.body,
         children: h.div(
-          { class: 'modal-backdrop', onClick: onClose },
+          { 'data-testid': 'modal-overlay', class: 'modal-backdrop', onClick: onClose },
           h.div(
             {
               class: 'modal-content',
               // Stop clicks inside the modal from bubbling up to the backdrop and closing it.
               onClick: (e) => e.stopPropagation()
             },
-            h.button({ class: 'modal-close-btn', onClick: onClose }, '×'),
+            h.button({ 'data-testid': 'modal-close-button', class: 'modal-close-btn', onClick: onClose }, '×'),
             children,
           )
         )

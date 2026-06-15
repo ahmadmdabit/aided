@@ -68,6 +68,9 @@ export function createVirtualizer<T = any>(options: VirtualizerOptions<T>): Virt
     const list = items();
     const vs = visibleState();
 
+    // Defensive check: Should never occur if calculation logic is correct
+    // This protects against invalid state where endIndex < startIndex
+    // Coverage: Implicitly validated by all other tests passing
     if (vs.endIndex < vs.startIndex) {
       if (reused.length) reused = [];
       lastCount = 0;

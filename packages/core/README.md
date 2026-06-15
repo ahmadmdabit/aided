@@ -37,14 +37,16 @@ npm install aided-core
 Aided uses a **hyperscript** function, `h`, for a declarative and readable way to create DOM elements. It feels like JSX, but it's just plain JavaScript functions.
 
 **index.html**
+
 ```html
 <div id="app"></div>
 <script type="module" src="./main.js"></script>
 ```
 
 **main.js**
+
 ```javascript
-import { render, createSignal, h } from 'aided-core';
+import { render, createSignal, h } from "aided-core";
 
 function Counter() {
   const [count, setCount] = createSignal(0);
@@ -53,15 +55,16 @@ function Counter() {
   return h.button(
     {
       // Event handlers are passed as props
-      onClick: () => setCount(count() + 1)
+      onClick: () => setCount(count() + 1),
     },
     // Reactive children are automatically updated
-    'Count: ', count
+    "Count: ",
+    count,
   );
 }
 
 // Mount the component to the DOM
-render(Counter, document.getElementById('app'));
+render(Counter, document.getElementById("app"));
 ```
 
 ## Interactive Playground
@@ -74,6 +77,7 @@ Explore Aided's capabilities with our comprehensive **interactive playground** l
 - **Advanced Patterns**: Demonstrations of complex reactivity patterns including context, portals, and state isolation
 
 To run the playground:
+
 ```bash
 cd playground
 yarn install
@@ -99,9 +103,11 @@ Creates a reactive scope that automatically re-runs when its dependencies change
 Creates a derived, read-only signal that caches its value.
 
 #### `untrack<T>(fn: () => T): T`
+
 **New in v1.1.0** - Executes a function without tracking its dependencies, preventing the current reactive scope from re-running when signals inside the function change.
 
 Useful for:
+
 - Creating component instances that maintain independent state
 - Performing side effects without triggering reactive updates
 - Breaking unwanted dependency chains
@@ -111,12 +117,12 @@ const [count, setCount] = createSignal(0);
 
 // This effect normally re-runs when count changes
 createEffect(() => {
-  console.log('Count:', count());
+  console.log("Count:", count());
 });
 
 // This won't trigger the effect
 untrack(() => {
-  console.log('Silent read:', count()); // Not tracked
+  console.log("Silent read:", count()); // Not tracked
 });
 ```
 
@@ -152,7 +158,7 @@ Registers a cleanup function to run when the current reactive scope is disposed.
 
 ```javascript
 createEffect(() => {
-  const timer = setInterval(() => console.log('tick'), 1000);
+  const timer = setInterval(() => console.log("tick"), 1000);
 
   onCleanup(() => {
     clearInterval(timer); // Clean up when effect re-runs or scope ends
@@ -183,36 +189,37 @@ The main entry point for an application. It mounts a component into a DOM node w
 The `h` helper is the primary way to build UI in Aided. It's a proxy that provides a function for every HTML tag (e.g., `h.div`, `h.a`).
 
 ```javascript
-import { h, createSignal } from 'aided-core';
+import { h, createSignal } from "aided-core";
 
-const [name, setName] = createSignal('World');
+const [name, setName] = createSignal("World");
 const [isActive, setIsActive] = createSignal(true);
 
 const element = h.div(
   // Attributes and event handlers go in an object
   {
-    id: 'container',
+    id: "container",
     classList: { active: isActive, static: true },
-    style: { color: () => isActive() ? 'blue' : 'grey' },
-    onClick: () => console.log('Clicked!'),
+    style: { color: () => (isActive() ? "blue" : "grey") },
+    onClick: () => console.log("Clicked!"),
   },
   // Children follow the attributes
-  'Hello, ', name
+  "Hello, ",
+  name,
 );
 ```
 
--   **Reactive Children:** Passing a signal (`name`) as a child automatically creates a reactive text node.
--   **Reactive Attributes:** Passing a signal as an attribute value (`id: myId`) creates a reactive binding.
--   **Special Properties:** `h` has special handling for `classList`, `style`, `ref`, and event handlers (`onClick`, `onInput`, etc.).
+- **Reactive Children:** Passing a signal (`name`) as a child automatically creates a reactive text node.
+- **Reactive Attributes:** Passing a signal as an attribute value (`id: myId`) creates a reactive binding.
+- **Special Properties:** `h` has special handling for `classList`, `style`, `ref`, and event handlers (`onClick`, `onInput`, etc.).
 
 #### `Model` (Two-Way Binding)
 
 The `Model` helper provides two-way binding for form inputs. It's used with the `ref` property in the `h` helper.
 
 ```javascript
-const nameSignal = createSignal('');
+const nameSignal = createSignal("");
 const input = h.input({
-  ref: (el) => Model(el, nameSignal)
+  ref: (el) => Model(el, nameSignal),
 });
 ```
 
@@ -225,8 +232,8 @@ Conditionally renders `children` if `when()` is truthy, otherwise renders `fallb
 ```javascript
 Show({
   when: isLoggedIn,
-  fallback: () => h.p('Please log in.'),
-  children: () => h.p('Welcome!'),
+  fallback: () => h.p("Please log in."),
+  children: () => h.p("Welcome!"),
 });
 ```
 
@@ -235,13 +242,13 @@ Show({
 Efficiently renders a list of items using a keyed reconciliation algorithm.
 
 ```javascript
-const [items] = createSignal(['a', 'b']);
+const [items] = createSignal(["a", "b"]);
 const list = h.ul(
   For({
     each: items,
     key: (item) => item,
-    children: (item) => h.li(item)
-  })
+    children: (item) => h.li(item),
+  }),
 );
 ```
 
@@ -249,37 +256,64 @@ const list = h.ul(
 
 Creates a headless, high-performance engine for virtualizing large lists. It contains all the state and logic for calculating the visible window of items, which can then be used by a rendering component.
 
--   `options.items`: A signal containing the full list of data.
--   `options.itemHeight`: The fixed height of each item in pixels.
--   `options.overscan`: The number of extra items to render on either side of the visible area.
+- `options.items`: A signal containing the full list of data.
+- `options.itemHeight`: The fixed height of each item in pixels.
+- `options.overscan`: The number of extra items to render on either side of the visible area.
 
 Returns a `Virtualizer` object with reactive properties:
--   `.visibleItems`: A memoized array of the items that should be rendered.
--   `.totalHeight`: A memoized total height of the scrollable area.
--   `.visibleState`: A memoized object containing `{ startIndex, endIndex, scrollOffset }`.
--   `.setContainer`: A function to pass the scrollable container element to the virtualizer.
+
+- `.visibleItems`: A memoized array of the items that should be rendered.
+- `.totalHeight`: A memoized total height of the scrollable area.
+- `.visibleState`: A memoized object containing `{ startIndex, endIndex, scrollOffset }`.
+- `.setContainer`: A function to pass the scrollable container element to the virtualizer.
 
 #### `VirtualFor<T>(props): HTMLElement`
 
 An efficient, high-performance component for rendering virtualized lists. It renders only the items currently visible in the scrollable area, making it suitable for lists with thousands or millions of rows.
 
 ```javascript
-const [items] = createSignal(Array.from({ length: 100000 }, (_, i) => `Item ${i}`));
+const [items] = createSignal(
+  Array.from({ length: 100000 }, (_, i) => `Item ${i}`),
+);
 
+// Simple usage
 const list = VirtualFor({
   each: items,
   itemHeight: 30, // Each row is 30px high
-  overscan: 5,    // Render 5 extra items above/below the viewport
-  children: (item, index) => h.div({ class: 'row' }, `${index}: ${item}`)
+  overscan: 5, // Render 5 extra items above/below the viewport
+  children: (item, index) => h.div({ class: "row" }, `${index}: ${item}`),
+});
+
+// With container customization
+const customList = VirtualFor({
+  each: items,
+  itemHeight: 30,
+  overscan: 5,
+  containerProps: {
+    className: "my-scroller",
+    style: { height: "400px", border: "1px solid #ccc" },
+    attributes: [
+      { name: "data-testid", value: "virtual-list" },
+      { name: "aria-label", value: "Virtualized item list" },
+    ],
+  },
+  children: (item, index) => h.div({ class: "row" }, `${index}: ${item}`),
 });
 ```
 
--   `each`: A signal containing the array of items.
--   `itemHeight`: The fixed height of each item in pixels.
--   `children`: A function that receives the item and its `index` and returns a DOM node.
--   `overscan?`: The number of extra items to render on either side.
--   `class?`, `style?`: Optional class and style attributes for the scroll container.
--   `placeholder?`: An optional element to show when the `each` array is empty.
+**Props:**
+
+- `each`: A signal containing the array of items.
+- `itemHeight`: The fixed height of each item in pixels.
+- `children`: A function that receives the item and its `index` and returns a DOM node.
+- `overscan?`: The number of extra items to render on either side (default: 5).
+- `containerProps?`: Optional configuration for the scroll container:
+  - `className?`: CSS class name(s) for the container
+  - `style?`: Inline styles for the container
+  - `attributes?`: Array of custom attributes (e.g., `[{ name: 'data-testid', value: 'list' }]`)
+- `placeholder?`: An optional element to show when the `each` array is empty.
+
+**Note:** The `attributes` array accepts `Attribute` objects with `name` and `value` properties. Dangerous attributes like `ref`, `role`, `style`, `class`, and `className` are automatically filtered for safety.
 
 #### `Fragment(props: { children: Node[] }): DocumentFragment`
 
@@ -303,6 +337,91 @@ Aided achieves exceptional performance through:
 **Runtime**: Zero dependencies, pure JavaScript execution
 
 The trade-off is that it does not use JSX, instead opting for a hyperscript function (`h`) for UI creation. The keyed reconciliation in `For` is highly efficient for lists with stable keys. For extremely large datasets, the `VirtualFor` component provides best-in-class rendering performance.
+
+## Security Strengthening (v1.2.0)
+
+Version 1.2.0 introduces proactive security measures to prevent common injection attacks.
+
+### `bindAttr` – Event Handler Rejection
+
+The `bindAttr` utility now **rejects any attribute name starting with `on`** (case‑insensitive), such as `onclick`, `onload`, `onerror`. Trying to bind such attributes throws a descriptive error:
+
+```javascript
+// ❌ This now throws an error
+bindAttr(button, "onclick", () => console.log("clicked"));
+// Error: Security: Cannot bind event handler attribute 'onclick'. Use addEventListener() instead.
+```
+
+Always use `addEventListener` or the `onClick` prop in `h()` for event handling.
+
+### `h` Proxy – Tag Name Validation
+
+The `h` hyperscript helper now validates all tag names and blocks dangerous ones:
+
+- **Blocked tags:** `script`, `constructor`, `prototype` (throws a `Security` error).
+- **Tag name format:** Must start with a letter and contain only letters, numbers, and hyphens: `/^[a-zA-Z][a-zA-Z0-9-]*$/`.
+
+```javascript
+// ❌ These now throw errors
+h.script(); // Security: Cannot create 'script' element...
+h["1div"](); // Invalid tag name '1div'...
+h["constructor"](); // Security: Cannot create 'constructor' element...
+
+// ✅ Still allowed
+h.div();
+h["my-custom-element"]();
+```
+
+### `For` Component – Null Children Support
+
+The `children` function of the `For` component can now return `null` (or `undefined`) to skip rendering an item entirely. The component properly disposes the reactive root for that item, preventing memory leaks.
+
+```javascript
+For({
+  each: items,
+  children: (item) => {
+    if (item().hidden) return null; // skip this item
+    return h.div({}, item().text);
+  },
+});
+```
+
+This is especially useful for conditional rendering inside lists.
+
+## Testing
+
+Aided includes comprehensive test coverage to ensure reliability and correctness:
+
+### Unit Tests
+
+The core library has extensive unit tests covering all reactive primitives, components, and utilities. Tests are written using Vitest and achieve high code coverage.
+
+```bash
+yarn test
+```
+
+### E2E Tests
+
+End-to-end tests validate the complete user experience in real browsers using TestCafe. These tests run against the interactive playground and verify:
+
+- Navigation and routing
+- Interactive examples functionality
+- Reactive state updates
+- Cross-browser compatibility (Chrome, Firefox)
+
+```bash
+# Run all E2E tests
+yarn test:e2e
+
+# Run in specific browser
+yarn test:e2e:chrome
+yarn test:e2e:firefox
+
+# Run in headed mode (see browser)
+yarn test:e2e:headed
+```
+
+E2E tests use the Page Object Model pattern for maintainability and include comprehensive coverage of all playground examples. See `e2e/README.md` for detailed documentation.
 
 ## Contributing
 

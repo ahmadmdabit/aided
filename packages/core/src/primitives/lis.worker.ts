@@ -1,6 +1,12 @@
 import { longestIncreasingSubsequence } from './../internal/lis';
 
 /**
+ * Response type from the LIS Web Worker.
+ * Either returns the computed LIS indices or an error object.
+ */
+type WorkerResponse = number[] | { error: string };
+
+/**
  * Web Worker for computing Longest Increasing Subsequence (LIS) asynchronously.
  *
  * This worker handles heavy LIS computations off the main thread to prevent
@@ -35,9 +41,12 @@ self.onmessage = (event: MessageEvent<Int32Array | Uint32Array | Float32Array | 
     // Perform the heavy computation inside the worker to avoid blocking the main thread
     const result = longestIncreasingSubsequence(seq);
     // Post the result back to the main thread
-    self.postMessage(result);
+    self.postMessage(result as WorkerResponse);
   } catch (error) {
     // If an error occurs during computation, post error details back
-    self.postMessage({ error: error instanceof Error ? error.message : 'Unknown worker error' });
+    const errorResponse: WorkerResponse = { 
+      error: error instanceof Error ? error.message : 'Unknown worker error' 
+    };
+    self.postMessage(errorResponse);
   }
 };

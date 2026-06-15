@@ -42,12 +42,14 @@ export function SortableUserTable() {
     classList: {
       'table': true,
       'table--borderless': true,
-    }
+    },
+    'data-testid': 'sortable-table'
   },
     h.thead(
       h.tr(
         h.th({
           onClick: () => handleSort('name'),
+          'data-testid': 'table-header-name',
           // 4. Reactive classes for visual feedback
           classList: {
             active: () => sortConfig().key === 'name',
@@ -57,6 +59,7 @@ export function SortableUserTable() {
         }, 'Name'),
         h.th({
           onClick: () => handleSort('age'),
+          'data-testid': 'table-header-age',
           classList: {
             active: () => sortConfig().key === 'age',
             asc: () => sortConfig().key === 'age' && sortConfig().direction === 'asc',
@@ -71,6 +74,7 @@ export function SortableUserTable() {
         each: sortedUsers,
         key: (user) => user.id,
         children: (user) => h.tr(
+          { 'data-testid': `table-row-${user().id}` },
           h.td(user().name),
           h.td(user().age)
         )

@@ -17,19 +17,25 @@ export function ToasterDemo() {
     h.div(
       h.h3('Bottom-Right Toaster'),
       h.button({
-        onClick: () => toaster.add('User logged in successfully.', { type: 'success' })
+        onClick: () => toaster.add('User logged in successfully.', { type: 'success' }),
+        'data-testid': 'add-toast-success'
       }, 'Add Success'),
       
       h.button({
-        onClick: () => toaster.add('This is a persistent error message. Click to dismiss.', { type: 'error', persistent: true })
+        onClick: () => toaster.add('This is a persistent error message. Click to dismiss.', { type: 'error', persistent: true }),
+        'data-testid': 'add-toast-error'
       }, 'Add Persistent Error'),
 
-      h.button({ onClick: toaster.clearAll }, 'Clear All')
+      h.button({ 
+        onClick: toaster.clearAll,
+        'data-testid': 'clear-all-toasts'
+      }, 'Clear All')
     ),
     h.div(
       h.h3('Top-Left Toaster'),
       h.button({
-        onClick: () => topLeftToaster.add('Your session is about to expire.', { type: 'warning' })
+        onClick: () => topLeftToaster.add('Your session is about to expire.', { type: 'warning' }),
+        'data-testid': 'add-toast-warning'
       }, 'Add Warning')
     ),
 

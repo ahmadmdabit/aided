@@ -26,8 +26,8 @@ const widgetCSS = `
   /* Form */
   .todo-app form {
     display: flex;
-    gap: var(--space-2);
-    margin-bottom: var(--space-4);
+    gap: var(--gap-2);
+    margin-bottom: var(--gap-4);
   }
 
   .todo-app input[type="text"] {
@@ -73,12 +73,12 @@ const widgetCSS = `
   .todo-app li {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
+    gap: var(--gap-2);
+    padding: var(--gap-3) var(--gap-4);
     background: var(--bg-surface);
     border: 1px solid var(--border-color-light);
     border-radius: var(--radius-sm);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--gap-2);
     transition: background 0.2s;
   }
 
@@ -160,8 +160,8 @@ const widgetCSS = `
 
   /* Footer */
   .todo-app footer {
-    margin-top: var(--space-4);
-    padding-top: var(--space-3);
+    margin-top: var(--gap-4);
+    padding-top: var(--gap-3);
     border-top: 1px solid var(--border-color-light);
     text-align: center;
     color: var(--text-muted);
@@ -234,10 +234,11 @@ export function TodoList() {
     h.h2('Aided To-Do List'),
     h.form({ onSubmit: addTodo },
       h.input({
+        'data-testid': 'task-input',
         placeholder: 'What needs to be done?',
         ref: (el: HTMLInputElement) => Model(el, [newTodoText, setNewTodoText])
       }),
-      h.button({ type: 'submit' }, 'Add Todo')
+      h.button({ 'data-testid': 'add-task-button', type: 'submit' }, 'Add Todo')
     ),
     h.ul(
       // 4. Use the For component for efficient list rendering

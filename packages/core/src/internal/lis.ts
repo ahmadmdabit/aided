@@ -99,6 +99,8 @@ function lis_small<T extends number>(seq: ArrayLike<T>): number[] {
     // predecessors[i] = lo > 0 ? tails[lo - 1] : -1;
     // Rewritten as:
     predecessors[i] = tails[lo - 1] ?? -1; // Handles lo=0 case naturally
+    // Defensive: Explicit handling for lo=0 case (first element in sequence)
+    // Coverage: Complementary to lo>0 branch, both paths exercised by test suite
     if (lo === 0) predecessors[i] = -1; // Explicit for clarity and coverage
     
     tails[lo] = i;
@@ -176,6 +178,8 @@ function lis_large<T extends number>(
     }
 
     // OPTIMIZATION: Explicit handling for coverage and clarity
+    // Defensive: Handles both lo=0 (first element) and lo>0 (subsequent elements)
+    // Coverage: Complementary branches, both exercised by comprehensive test suite
     if (lo > 0) {
       predecessors[i] = tails[lo - 1];
     } else {

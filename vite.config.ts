@@ -6,6 +6,13 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     watch: false,
+    // Exclude e2e tests from Vitest (they use TestCafe)
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/e2e/**',
+      '**/.{idea,git,cache,output,temp}/**',
+    ],
     // NEW: Add worker configuration
     // worker: { // 'worker' does not exist in type 'InlineConfig'.
     //   format: 'es',

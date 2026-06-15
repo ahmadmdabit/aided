@@ -12,7 +12,7 @@ type ForProps<T> = {
   /** A signal containing the array of items to render */
   each: SignalGetter<T[]>;
   /** Function that returns a DOM node for each item, receiving reactive item and index signals */
-  children: (item: SignalGetter<T>, index: SignalGetter<number>) => Node;
+  children: (item: SignalGetter<T>, index: SignalGetter<number>) => Node | null;
   /** Optional function to generate unique keys for efficient reconciliation */
   key?: (item: T, index: number) => string | number;
 };
@@ -85,7 +85,7 @@ export function For<T>(props: ForProps<T>): Node {
         // Item is new, create it within its own lifecycle root.
 
         // Item is new. Define placeholders for the values we'll create.
-        let node: Node;
+        let node: Node | null = null; // Allow children() to return null
         let setSignal: SignalSetter<T>;
         let setIndex: SignalSetter<number>;
 
@@ -104,16 +104,26 @@ export function For<T>(props: ForProps<T>): Node {
             // Check if the node is an Element before calling remove()
             if (node instanceof Element) {
               node.remove();
-            } else if (node.parentNode) {
+            } else if (node?.parentNode) {
               // Fallback for Text nodes or other node types
               node.parentNode.removeChild(node);
             }
           });
         });
 
+        // --- THIS IS THE FIX ---
+        // If the children function returned null or undefined, we should not
+        // create a mapped item for it. We must also dispose of the root
+        // we just created to prevent leaking the item/index signals.
+        if (node == null) { // Use `== null` to catch both null and undefined
+          disposer();
+          continue; // Skip to the next item in the loop
+        }
+        // --- END OF FIX ---
+
         // Now, construct the MappedItem object with the populated values.
         mappedItem = {
-          node: node!, // Add '!' to assert that `node` is not undefined
+          node: node, // No longer need '!' assertion since we checked for null above
           disposer: disposer,
           setSignal: setSignal!, // Add '!' to assert that `setSignal` is not undefined
           setIndex: setIndex!, // Add '!' to assert that `setIndex` is not undefined
@@ -137,8 +147,12 @@ export function For<T>(props: ForProps<T>): Node {
     // Pass 3: Perform efficient DOM moves
     if (newItems.length > 0) {
       const oldMap = new Map(Array.from(mappedItems.values()).map((item, i) => [item.node, i]));
-      const newNodes = newItems.map((item, i) => newMappedItems.get(key ? key(item, i) : item)!.node);
-      
+      // Filter out items that don't exist in newMappedItems (those that returned null)
+      const newNodes = newItems
+        .map((item, i) => newMappedItems.get(key ? key(item, i) : item))
+        .filter((mappedItem): mappedItem is MappedItem<T> => mappedItem !== undefined)
+        .map(mappedItem => mappedItem.node);
+
       const seq = newNodes.map(node => oldMap.get(node));
       const lis = longestIncreasingSubsequence(seq.map(i => i === undefined ? -1 : i));
 

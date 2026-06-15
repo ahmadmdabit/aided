@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aided Test Suite - E2E Test Pages</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+    
+    .header h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .test-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .test-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .test-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .test-card h2 {
+      font-size: 20px;
+      color: #1a202c;
+      font-weight: 600;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .badge-security {
+      background: #fee;
+      color: #c33;
+    }
+    
+    .badge-performance {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .badge-functionality {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+    
+    .test-card p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .test-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 13px;
+      color: #718096;
+    }
+    
+    .test-count {
+      font-weight: 600;
+    }
+    
+    .requirements {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    
+    .info-section {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 40px;
+    }
+    
+    .info-section h2 {
+      font-size: 24px;
+      color: #1a202c;
+      margin-bottom: 16px;
+    }
+    
+    .info-section p {
+      color: #4a5568;
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+    
+    .info-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .info-section li {
+      padding: 8px 0;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+    }
+    
+    .info-section li:before {
+      content: "→";
+      margin-right: 12px;
+      color: #667eea;
+      font-weight: bold;
+    }
+    
+    .footer {
+      text-align: center;
+      color: white;
+      opacity: 0.8;
+      font-size: 14px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .empty-state h3 {
+      font-size: 24px;
+      color: #1a202c;
+      margin-bottom: 12px;
+    }
+    
+    .empty-state p {
+      color: #718096;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 Aided Test Suite</h1>
+      <p>E2E Test Pages for Internal APIs & Security Boundaries</p>
+    </div>
+    
+    <div class="info-section">
+      <h2>About Test Pages</h2>
+      <p>
+        This directory contains dedicated test pages for automated e2e testing of internal APIs,
+        security boundaries, and edge cases. These pages are developer-facing utilities, not
+        user-facing examples.
+      </p>
+      <ul>
+        <li>Test internal API security boundaries</li>
+        <li>Validate error handling and edge cases</li>
+        <li>Provide utilities for automated TestCafe tests</li>
+        <li>Expose APIs globally for browser-side testing</li>
+      </ul>
+    </div>
+    
+    <h2 style="color: white; margin-bottom: 20px; font-size: 28px;">Available Test Pages</h2>
+    
+    <div class="test-grid">
+      <!-- bindAttr Security Tests -->
+      <a href="/test-pages/bind-attr/" class="test-card">
+        <div class="test-card-header">
+          <h2>bindAttr Security</h2>
+          <span class="badge badge-security">Security</span>
+        </div>
+        <p>
+          Tests that bindAttr() correctly rejects event handler attributes (onclick, onchange, etc.)
+          and accepts valid attributes (data-*, aria-*, class, id).
+        </p>
+        <div class="test-card-footer">
+          <span class="test-count">10 tests</span>
+          <span class="requirements">Req: 1.1, 1.3</span>
+        </div>
+      </a>
+      
+      <!-- Add more test cards here as new test pages are created -->
+      
+    </div>
+    
+    <div class="info-section">
+      <h2>Creating New Test Pages</h2>
+      <p>
+        To add a new test page, copy the template from <code>_TEMPLATE/</code> and follow
+        the instructions in <code>CREATE_NEW_TEST_PAGE.md</code>.
+      </p>
+      <p>
+        See <code>README.md</code> for detailed documentation on the test page pattern and
+        when to create test pages vs. playground examples.
+      </p>
+    </div>
+    
+    <div class="footer">
+      <p>Aided Core Library • Test Suite v1.0</p>
+    </div>
+  </div>
+</body>
+</html>

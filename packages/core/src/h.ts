@@ -163,6 +163,12 @@ function hyperscript(tag: string) {
   };
 }
 
+// Valid tag name pattern: starts with letter, contains letters/numbers/hyphens
+const VALID_TAG_PATTERN = /^[a-zA-Z][a-zA-Z0-9-]*$/;
+
+// Dangerous properties to block
+const BLOCKED_PROPERTIES = new Set(['script', 'constructor', 'prototype']);
+
 /**
  * The main hyperscript helper for creating DOM elements with reactive capabilities.
  *
@@ -188,6 +194,22 @@ function hyperscript(tag: string) {
  */
 export const h = new Proxy({}, {
   get(_target, prop: string) {
+    // Block dangerous properties
+    if (BLOCKED_PROPERTIES.has(prop)) {
+      throw new Error(
+        `Security: Cannot create '${prop}' element. ` +
+        `This tag is not allowed.`
+      );
+    }
+    
+    // Validate tag name format
+    if (!VALID_TAG_PATTERN.test(prop)) {
+      throw new Error(
+        `Invalid tag name '${prop}'. ` +
+        `Tag names must start with a letter and contain only letters, numbers, and hyphens.`
+      );
+    }
+    
     return hyperscript(prop);
   }
 }) as Record<string, (...args: any[]) => HTMLElement>;

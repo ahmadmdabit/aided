@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM"],
+    "moduleResolution": "node",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "noEmit": true,
+    "baseUrl": "..",
+    "paths": {
+      "aided-core": ["packages/core/src"],
+      "aided-core/*": ["packages/core/src/*"]
+    }
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

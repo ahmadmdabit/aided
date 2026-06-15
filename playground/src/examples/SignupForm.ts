@@ -34,6 +34,7 @@ export const SignupForm = () => {
     h.div({ class: 'form-group' },
       h.label({ for: 'email' }, 'Email'),
       h.input({
+        'data-testid': 'signup-email-input',
         id: 'email',
         type: 'email',
         ref: (el: HTMLInputElement) => Model(el, [email, setEmail]),
@@ -42,12 +43,13 @@ export const SignupForm = () => {
       // 4. Conditionally show the error message
       Show({
         when: emailError,
-        children: () => h.span({ class: 'text-error' }, emailError)
+        children: () => h.span({ 'data-testid': 'email-error', class: 'text-error' }, emailError)
       })
     ),
     h.div({ class: 'form-group' },
       h.label({ for: 'password' }, 'Password'),
       h.input({
+        'data-testid': 'signup-password-input',
         id: 'password',
         type: 'password',
         ref: (el: HTMLInputElement) => Model(el, [password, setPassword]),
@@ -55,10 +57,11 @@ export const SignupForm = () => {
       }),
       Show({
         when: passwordError,
-        children: () => h.span({ class: 'text-error' }, passwordError)
+        children: () => h.span({ 'data-testid': 'password-error', class: 'text-error' }, passwordError)
       })
     ),
     h.button({
+      'data-testid': 'signup-submit-button',
       type: 'submit',
       // 5. Reactively disable the button when the form is invalid
       disabled: () => !isFormValid()

@@ -17,6 +17,7 @@ export function ThemeToggleButton() {
   // 3. Use the context values to render the UI.
   return h.button(
     {
+      'data-testid': 'theme-toggle',
       // Call the `toggleTheme` function from the context on click.
       onClick: toggleTheme
     },

@@ -384,5 +384,69 @@ describe('Aided Control Flow', () => {
       expect(reorderedNodes[1]).toBe(nodes.get('b'));
       expect(reorderedNodes[2]).toBe(nodes.get('a'));
     });
+
+    it('should not render items when the children function returns null', () => {
+      const [items] = createSignal(['a', 'b', 'c']);
+      disposeRoot = createRoot(() => {
+        const list = For({
+          each: items,
+          key: item => item,
+          children: (item) => {
+            // Only render item 'b'
+            if (item() === 'b') {
+              const el = document.createElement('li');
+              el.textContent = item();
+              return el;
+            }
+            return null; // Return null for 'a' and 'c'
+          },
+        });
+        root.appendChild(list);
+      });
+      // Only the `<li>b</li>` should be in the DOM.
+      expect(root.innerHTML).toBe('<li>b</li>');
+    });
+
+    it('should handle updates where items switch between null and a node', async () => {
+      const [items, setItems] = createSignal([1, 2, 3]);
+      disposeRoot = createRoot(() => {
+        const list = For({
+          each: items,
+          key: item => item,
+          children: (item) => {
+            // Initially, only render odd numbers
+            if (item() % 2 !== 0) {
+              const el = document.createElement('li');
+              el.textContent = String(item());
+              return el;
+            }
+            return null;
+          },
+        });
+        root.appendChild(list);
+      });
+
+      expect(root.innerHTML).toBe('<li>1</li><li>3</li>');
+
+      // Update the list, which will change which items are null
+      setItems([2, 3, 4]);
+      await tick();
+
+      // Now only '3' should be rendered
+      expect(root.innerHTML).toBe('<li>3</li>');
+    });
+
+    it('should render nothing if all children return null', () => {
+      const [items] = createSignal([1, 2, 3]);
+      disposeRoot = createRoot(() => {
+        const list = For({
+          each: items,
+          key: item => item,
+          children: () => null, // Always return null
+        });
+        root.appendChild(list);
+      });
+      expect(root.innerHTML).toBe('');
+    });
   });
 });

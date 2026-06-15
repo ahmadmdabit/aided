@@ -31,5 +31,5 @@ function injectSpinnerStyles() {
 // --- UI Helper: Spinner Component ---
 export const Spinner = () => {
   injectSpinnerStyles();
-  return h.div({ class: 'spinner' });
+  return h.div({ class: 'spinner', 'data-testid': 'spinner' });
 }

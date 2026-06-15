@@ -1,0 +1,26 @@
+{
+  "src": ["e2e/tests/**/*.test.ts"],
+  "browsers": ["chrome:headless", "firefox:headless"],
+  "screenshots": {
+    "path": "e2e/screenshots",
+    "takeOnFails": true,
+    "fullPage": true
+  },
+  "reporter": [
+    {
+      "name": "spec"
+    },
+    {
+      "name": "json",
+      "output": "e2e/reports/results.json"
+    }
+  ],
+  "concurrency": 2,
+  "selectorTimeout": 10000,
+  "assertionTimeout": 5000,
+  "pageLoadTimeout": 30000,
+  "speed": 1,
+  "stopOnFirstFail": false,
+  "skipJsErrors": false,
+  "quarantineMode": true
+}

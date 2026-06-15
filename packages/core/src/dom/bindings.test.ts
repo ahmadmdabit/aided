@@ -231,6 +231,167 @@ describe('Aided DOM & Lifecycle', () => {
         await tick();
         expect(el.getAttribute('data-test')).toBe('false');
       });
+
+      // Security: Test event handler rejection
+      it('should throw error for event handler attributes (onclick)', () => {
+        const [value] = createSignal('alert("xss")');
+        const el = document.createElement('div');
+        root.appendChild(el);
+
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'onclick', value);
+          });
+        }).toThrow('Security: Cannot bind event handler attribute \'onclick\'. Use addEventListener() instead.');
+      });
+
+      it('should throw error for event handler attributes (onload)', () => {
+        const [value] = createSignal('alert("xss")');
+        const el = document.createElement('img');
+        root.appendChild(el);
+
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'onload', value);
+          });
+        }).toThrow('Security: Cannot bind event handler attribute \'onload\'. Use addEventListener() instead.');
+      });
+
+      it('should throw error for event handler attributes (onerror)', () => {
+        const [value] = createSignal('alert("xss")');
+        const el = document.createElement('img');
+        root.appendChild(el);
+
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'onerror', value);
+          });
+        }).toThrow('Security: Cannot bind event handler attribute \'onerror\'. Use addEventListener() instead.');
+      });
+
+      it('should throw error for event handler attributes (case-insensitive)', () => {
+        const [value] = createSignal('alert("xss")');
+        const el = document.createElement('div');
+        root.appendChild(el);
+
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'OnClick', value);
+          });
+        }).toThrow('Security: Cannot bind event handler attribute \'OnClick\'. Use addEventListener() instead.');
+
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'ONLOAD', value);
+          });
+        }).toThrow('Security: Cannot bind event handler attribute \'ONLOAD\'. Use addEventListener() instead.');
+      });
+
+      // Backward compatibility: Test valid attributes still work
+      it('should allow binding class attribute', async () => {
+        const [className, setClassName] = createSignal('active');
+        const el = document.createElement('div');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'class', className);
+        });
+
+        expect(el.getAttribute('class')).toBe('active');
+        setClassName('inactive');
+        await tick();
+        expect(el.getAttribute('class')).toBe('inactive');
+      });
+
+      it('should allow binding id attribute', async () => {
+        const [id, setId] = createSignal('my-id');
+        const el = document.createElement('div');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'id', id);
+        });
+
+        expect(el.getAttribute('id')).toBe('my-id');
+        setId('new-id');
+        await tick();
+        expect(el.getAttribute('id')).toBe('new-id');
+      });
+
+      it('should allow binding data-* attributes', async () => {
+        const [dataValue, setDataValue] = createSignal('test-value');
+        const el = document.createElement('div');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'data-test', dataValue);
+        });
+
+        expect(el.getAttribute('data-test')).toBe('test-value');
+        setDataValue('new-value');
+        await tick();
+        expect(el.getAttribute('data-test')).toBe('new-value');
+      });
+
+      it('should allow binding aria-* attributes', async () => {
+        const [ariaLabel, setAriaLabel] = createSignal('Button label');
+        const el = document.createElement('button');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'aria-label', ariaLabel);
+        });
+
+        expect(el.getAttribute('aria-label')).toBe('Button label');
+        setAriaLabel('New label');
+        await tick();
+        expect(el.getAttribute('aria-label')).toBe('New label');
+      });
+
+      it('should allow binding title attribute', async () => {
+        const [title, setTitle] = createSignal('Tooltip text');
+        const el = document.createElement('div');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'title', title);
+        });
+
+        expect(el.getAttribute('title')).toBe('Tooltip text');
+        setTitle('New tooltip');
+        await tick();
+        expect(el.getAttribute('title')).toBe('New tooltip');
+      });
+
+      it('should allow binding href attribute', async () => {
+        const [href, setHref] = createSignal('https://example.com');
+        const el = document.createElement('a');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'href', href);
+        });
+
+        expect(el.getAttribute('href')).toBe('https://example.com');
+        setHref('https://newsite.com');
+        await tick();
+        expect(el.getAttribute('href')).toBe('https://newsite.com');
+      });
+
+      it('should allow binding src attribute', async () => {
+        const [src, setSrc] = createSignal('image1.jpg');
+        const el = document.createElement('img');
+        root.appendChild(el);
+
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'src', src);
+        });
+
+        expect(el.getAttribute('src')).toBe('image1.jpg');
+        setSrc('image2.jpg');
+        await tick();
+        expect(el.getAttribute('src')).toBe('image2.jpg');
+      });
     });
 
     describe('bindEvent', () => {

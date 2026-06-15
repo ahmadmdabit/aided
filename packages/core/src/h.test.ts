@@ -91,6 +91,79 @@ describe('Aided Hyperscript Helper (h)', () => {
     });
   });
 
+  describe('Tag Validation', () => {
+    it('should create standard HTML tags', () => {
+      const div = h.div();
+      const span = h.span();
+      const p = h.p();
+      const button = h.button();
+      
+      expect(div).toBeInstanceOf(HTMLDivElement);
+      expect(span).toBeInstanceOf(HTMLSpanElement);
+      expect(p).toBeInstanceOf(HTMLParagraphElement);
+      expect(button).toBeInstanceOf(HTMLButtonElement);
+    });
+
+    it('should create custom elements with hyphens', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const customElement = (h as any)['my-component']();
+      expect(customElement).toBeInstanceOf(HTMLElement);
+      expect(customElement.tagName.toLowerCase()).toBe('my-component');
+    });
+
+    it('should create SVG tags', () => {
+      const svg = h.svg();
+      const circle = h.circle();
+      const path = h.path();
+      
+      expect(svg.tagName.toLowerCase()).toBe('svg');
+      expect(circle.tagName.toLowerCase()).toBe('circle');
+      expect(path.tagName.toLowerCase()).toBe('path');
+    });
+
+    it('should reject script tag creation', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any).script();
+      }).toThrow('Security: Cannot create \'script\' element. This tag is not allowed.');
+    });
+
+    it('should reject constructor property access', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any).constructor();
+      }).toThrow('Security: Cannot create \'constructor\' element. This tag is not allowed.');
+    });
+
+    it('should reject prototype property access', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any).prototype();
+      }).toThrow('Security: Cannot create \'prototype\' element. This tag is not allowed.');
+    });
+
+    it('should reject tag names starting with numbers', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any)['1div']();
+      }).toThrow('Invalid tag name \'1div\'. Tag names must start with a letter and contain only letters, numbers, and hyphens.');
+    });
+
+    it('should reject tag names with invalid characters', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any)['div@test']();
+      }).toThrow('Invalid tag name \'div@test\'. Tag names must start with a letter and contain only letters, numbers, and hyphens.');
+    });
+
+    it('should reject empty tag names', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any)['']();
+      }).toThrow('Invalid tag name \'\'. Tag names must start with a letter and contain only letters, numbers, and hyphens.');
+    });
+  });
+
   describe('Reactivity Integration', () => {
     it('should bind a signal to a text node and update it', async () => {
       const [count, setCount] = createSignal(0);

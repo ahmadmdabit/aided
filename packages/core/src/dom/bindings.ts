@@ -33,6 +33,7 @@ export function bindText<T>(element: Node, signal: SignalGetter<T>): void {
  * @param element The DOM element to update
  * @param attributeName The name of the attribute to bind
  * @param signal A signal whose value will be set as the attribute value
+ * @throws Error if attributeName starts with 'on' (event handler)
  *
  * @example
  * ```typescript
@@ -44,6 +45,14 @@ export function bindText<T>(element: Node, signal: SignalGetter<T>): void {
  * ```
  */
 export function bindAttr<T>(element: Element, attributeName: string, signal: SignalGetter<T>): void {
+  // Security: Prevent event handler binding via attributes
+  if (attributeName.toLowerCase().startsWith('on')) {
+    throw new Error(
+      `Security: Cannot bind event handler attribute '${attributeName}'. ` +
+      `Use addEventListener() instead.`
+    );
+  }
+  
   createEffect(() => {
     const value = signal();
     if (value === null || value === undefined || value === false) {

@@ -94,3 +94,23 @@ export interface Context<T> {
   /** Default value to use if no provider is found */
   readonly defaultValue?: T;
 }
+
+/**
+ * Represents an HTML attribute with its name and value.
+ * Used for applying custom attributes to DOM elements.
+ *
+ * @example
+ * ```typescript
+ * const attrs: Attribute[] = [
+ *   { name: 'data-testid', value: 'my-component' },
+ *   { name: 'aria-label', value: 'Accessible label' },
+ *   { name: 'data-count', value: 42 }
+ * ];
+ * ```
+ */
+export interface Attribute {
+  /** Attribute name (e.g., 'data-testid', 'aria-label') */
+  name: string;
+  /** Attribute value */
+  value: string | number | boolean;
+}

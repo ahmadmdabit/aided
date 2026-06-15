@@ -57,6 +57,21 @@ export default tseslint.config(
     },
   },
 
+  // Override for E2E test files and page objects
+  {
+    files: ['e2e/**/*.ts'],
+    rules: {
+      // Allow importing devDependencies in E2E files
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: true,
+          packageDir: ['.', './packages/core', './playground'],
+        },
+      ],
+    },
+  },
+
   // Configuration to ignore specific files/directories
   {
     ignores: [
@@ -66,6 +81,7 @@ export default tseslint.config(
       '.yarn/',
       '**/*.config.js', // Ignore config files themselves
       '**/*.config.ts',
+      'playground/test-pages/_TEMPLATE/', // Ignore template files (copied to e2e/)
     ],
   }
 );

@@ -97,7 +97,7 @@ export function WeatherWidget() {
   };
 
   // --- UI ---
-  return h.div({ class: 'weather-widget' },
+  return h.div({ class: 'weather-widget', 'data-testid': 'weather-widget' },
     h.h2('Weather Forecast'),
 
     // --- NEW: Conditionally show the button or the spinner ---
@@ -105,14 +105,15 @@ export function WeatherWidget() {
       when: () => !isAnythingLoading(),
       fallback: () => Spinner(),
       children: () => h.button({
-        onClick: handleGetWeatherClick
+        onClick: handleGetWeatherClick,
+        'data-testid': 'weather-get-button'
       }, 'Get My Local Weather')
     }),
 
     // Use Show to only render the results section when a request has started
     Show({
       when: () => (locationResource() || geoError()) && !isAnythingLoading(), // Only show results when NOT loading
-      children: () => h.div({ class: 'results' },
+      children: () => h.div({ class: 'results', 'data-testid': 'weather-results' },
         Show({
           when: () => !geoError(),
           fallback: () => ErrorMessage({ message: geoError() }),
@@ -125,7 +126,7 @@ export function WeatherWidget() {
                 const location = locationResource();
                 const locationName = location?.address?.city || location?.address?.town;
                 const countryCode = location?.address?.country_code?.toUpperCase();
-                return locationName ? h.h3(`Location: ${locationName}, ${countryCode}`) : null;
+                return locationName ? h.h3({ 'data-testid': 'weather-location' }, `Location: ${locationName}, ${countryCode}`) : null;
               }
             }),
             // --- Weather Section (Simplified) ---
@@ -135,11 +136,11 @@ export function WeatherWidget() {
               children: () => {
                 const weather = weatherResource();
                 return weather ? h.div(
-                  h.p({ class: 'current-temp' }, `Now: ${weather.current.temperature_2m}°C ${getWeatherIcon(weather.current.weather_code)}`),
-                  h.div({ class: 'forecast-grid' },
+                  h.p({ class: 'current-temp', 'data-testid': 'weather-current-temp' }, `Now: ${weather.current.temperature_2m}°C ${getWeatherIcon(weather.current.weather_code)}`),
+                  h.div({ class: 'forecast-grid', 'data-testid': 'weather-forecast' },
                     For({
                       each: () => weather.daily.time,
-                      children: (time, index) => h.div({ class: 'forecast-day' },
+                      children: (time, index) => h.div({ class: 'forecast-day', 'data-testid': `weather-forecast-day-${index()}` },
                         h.p(new Date(time()).toLocaleDateString(undefined, { weekday: 'short' })),
                         h.p({ class: 'forecast-icon' }, getWeatherIcon(weather.daily.weather_code[index()])),
                         h.p(`H: ${weather.daily.temperature_2m_max[index()]}°`),

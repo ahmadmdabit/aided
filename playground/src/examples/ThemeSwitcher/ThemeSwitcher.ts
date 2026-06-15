@@ -53,7 +53,10 @@ export function ThemeSwitcher() {
   // The `h` helper will create a div and apply a class reactively.
   // When the `theme` signal changes, this class will automatically update.
   return h.div(
-    { class: theme }, // Applies 'light' or 'dark' class to the root
+    { 
+      class: theme,
+      'data-testid': 'theme-container' // [FIX] Add test identifier for reliable selection
+    },
     Header(),
     MainContent()
   );

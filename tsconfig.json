@@ -22,6 +22,6 @@
       "aided-core/*": ["packages/core/src/*"]
     }
   },
-  "include": ["packages", "playground", "packages/core/src/vite-env.d.ts"],
+  "include": ["packages", "playground", "e2e", "packages/core/src/vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

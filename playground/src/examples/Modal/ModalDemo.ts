@@ -33,7 +33,7 @@ export function ModalDemo() {
     { class: 'app-container' },
     h.h1('Aided Portal Example'),
     h.p('This is the main application content. The modal will render outside of this container.'),
-    h.button({ onClick: openModal }, 'Open Modal'),
+    h.button({ 'data-testid': 'modal-open-button', onClick: openModal }, 'Open Modal'),
 
     // 2. Use the Modal component here.
     // It's logically a child of this div, but it will render elsewhere.

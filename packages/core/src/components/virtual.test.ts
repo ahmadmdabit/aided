@@ -138,4 +138,146 @@ describe('VirtualFor Component', () => {
     expect(newRenderedCount).toBeLessThan(initialCount);
     expect(newRenderedCount).toBeGreaterThan(5); // 150px / 30px/item = 5 items + overscan
   });
+
+  it('should apply safe custom attributes from containerProps', () => {
+    const [items] = createSignal([{ id: 1, text: 'Item 1' }]);
+
+    disposeRoot = createRoot(() => {
+      const list = VirtualFor({
+        each: items,
+        itemHeight: 30,
+        containerProps: {
+          attributes: [
+            { name: 'data-testid', value: 'virtual-list' },
+            { name: 'aria-label', value: 'Virtualized list' },
+          ],
+        },
+        children: (item) => {
+          const el = document.createElement('div');
+          el.textContent = item.text;
+          return el;
+        },
+      });
+      root.appendChild(list);
+    });
+
+    const container = root.querySelector('[role="list"]') as HTMLElement;
+    expect(container?.getAttribute('data-testid')).toBe('virtual-list');
+    expect(container?.getAttribute('aria-label')).toBe('Virtualized list');
+  });
+
+  it('should filter out dangerous attributes from containerProps', () => {
+    const [items] = createSignal([{ id: 1, text: 'Item 1' }]);
+
+    disposeRoot = createRoot(() => {
+      const list = VirtualFor({
+        each: items,
+        itemHeight: 30,
+        containerProps: {
+          attributes: [
+            { name: 'data-testid', value: 'safe-attribute' },
+            { name: 'ref', value: 'should-be-filtered' },
+            { name: 'role', value: 'should-be-filtered' },
+            { name: 'style', value: 'should-be-filtered' },
+            { name: 'class', value: 'should-be-filtered' },
+            { name: 'className', value: 'should-be-filtered' },
+          ],
+        },
+        children: (item) => {
+          const el = document.createElement('div');
+          el.textContent = item.text;
+          return el;
+        },
+      });
+      root.appendChild(list);
+    });
+
+    const container = root.querySelector('[role="list"]') as HTMLElement;
+    
+    // Safe attribute should be applied
+    expect(container?.getAttribute('data-testid')).toBe('safe-attribute');
+    
+    // Role should still be 'list' (not overridden by dangerous attribute)
+    expect(container?.getAttribute('role')).toBe('list');
+    
+    // Dangerous attributes should NOT be applied
+    expect(container?.getAttribute('ref')).toBeNull();
+  });
+
+  it('should apply className and style from containerProps', () => {
+    const [items] = createSignal([{ id: 1, text: 'Item 1' }]);
+
+    disposeRoot = createRoot(() => {
+      const list = VirtualFor({
+        each: items,
+        itemHeight: 30,
+        containerProps: {
+          className: 'custom-class',
+          style: { backgroundColor: 'red' },
+        },
+        children: (item) => {
+          const el = document.createElement('div');
+          el.textContent = item.text;
+          return el;
+        },
+      });
+      root.appendChild(list);
+    });
+
+    const container = root.querySelector('[role="list"]') as HTMLElement;
+    expect(container?.classList.contains('custom-class')).toBe(true);
+    expect(container?.style.backgroundColor).toBe('red');
+  });
+
+  it('should render placeholder for empty/undefined data slots when placeholder is provided', async () => {
+    // Create a placeholder element
+    const placeholderEl = document.createElement('div');
+    placeholderEl.className = 'placeholder-item';
+    placeholderEl.textContent = 'Loading...';
+    placeholderEl.style.backgroundColor = 'lightgray';
+
+    // Create a sparse array with undefined values to trigger placeholder rendering
+    const sparseArray: Array<{ id: number; text: string } | undefined> = [
+      { id: 1, text: 'Item 1' },
+      undefined, // This will trigger placeholder
+      { id: 3, text: 'Item 3' },
+      undefined, // This will trigger placeholder
+      { id: 5, text: 'Item 5' },
+    ];
+    
+    const [items] = createSignal(sparseArray);
+
+    disposeRoot = createRoot(() => {
+      const list = VirtualFor({
+        each: items as any,
+        itemHeight: 50,
+        placeholder: placeholderEl,
+        children: (item) => {
+          const el = document.createElement('div');
+          el.className = 'virtual-item';
+          el.textContent = item.text;
+          return el;
+        },
+      });
+      root.appendChild(list);
+    });
+
+    await tick();
+
+    // Verify placeholders are rendered for undefined slots
+    const placeholders = root.querySelectorAll('.placeholder-item');
+    expect(placeholders.length).toBeGreaterThan(0);
+    
+    // Verify placeholder has correct height
+    const firstPlaceholder = placeholders[0] as HTMLElement;
+    expect(firstPlaceholder.style.height).toBe('50px');
+    
+    // Verify placeholder content is cloned
+    expect(firstPlaceholder.textContent).toBe('Loading...');
+    expect(firstPlaceholder.style.backgroundColor).toBe('lightgray');
+    
+    // Verify real items are also rendered
+    const realItems = root.querySelectorAll('.virtual-item');
+    expect(realItems.length).toBeGreaterThan(0);
+  });
 });

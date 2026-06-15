@@ -1,6 +1,6 @@
 {
   "name": "aided-core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A minimal JavaScript library for building user interfaces with fine-grained reactivity.",
   "author": "Ahmet Fatihoğlu (https://github.com/ahmadmdabit)",
   "license": "MIT",
