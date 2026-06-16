@@ -29,12 +29,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODEVERSION }}
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Enable Corepack & activate Yarn v4
         run: |
@@ -60,8 +63,49 @@ jobs:
       - name: Lint, Build & Test with Coverage
         run: yarn build:test
 
+      - name: Extract version from git tag
+        id: version
+        run: |
+          TAG=$(git tag --points-at HEAD | grep '^v' | sort -V | tail -1)
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          VERSION=${TAG#v}
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "package_name=${PACKAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "📦 Package: ${PACKAGE_NAME}"
+          echo "📦 Version to publish: ${VERSION}"
+
+      - name: Update package.json version
+        run: npm version ${{ steps.version.outputs.version }} --no-git-tag-version --allow-same-version
+
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
+
+      - name: Verify OIDC authentication
+        run: |
+          if [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL}" ]; then
+            echo "✅ Using OIDC trusted publishing"
+          else
+            echo "❌ No authentication method found."
+            echo ""
+            echo "To configure OIDC trusted publishing:"
+            echo "  1. Go to https://www.npmjs.com/package/aided-core/settings"
+            echo "  2. Add a trusted publisher for this repository and workflow"
+            echo "  3. Ensure 'id-token: write' is in your workflow permissions"
+            exit 1
+          fi
+
       - name: Publish to NPM
         run: npm publish --workspace=packages/core --provenance --access public
+
+      - name: Set step outputs
+        id: outputs
+        run: |
+          echo "package-name=${{ steps.version.outputs.package_name }}" >> "$GITHUB_OUTPUT"
+          echo "version=${{ steps.version.outputs.version }}" >> "$GITHUB_OUTPUT"
+          echo "npm-url=https://www.npmjs.com/package/${{ steps.version.outputs.package_name }}" >> "$GITHUB_OUTPUT"
 
       - name: Resolve tag name
         id: tag
