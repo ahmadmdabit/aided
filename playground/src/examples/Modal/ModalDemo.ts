@@ -1,5 +1,21 @@
 import { h, createSignal } from 'aided-core';
 import { Modal } from './Modal';
+import { CodeSnippet } from '../../components/CodeSnippet';
+
+const modalDemoCode = `const [isModalOpen, setIsModalOpen] = createSignal(false);
+
+return h.div(
+  h.button({ onClick: () => setIsModalOpen(true) }, 'Open Modal'),
+  Modal({
+    when: isModalOpen,
+    onClose: () => setIsModalOpen(false),
+    children: [
+      h.h2('Modal Title'),
+      h.p('This content is rendered via Portal at document.body.'),
+      h.button({ onClick: () => setIsModalOpen(false) }, 'Close')
+    ]
+  })
+);`;
 
 const WIDGET_STYLE_ID = 'aided-modal-demo-styles';
 
@@ -46,6 +62,7 @@ export function ModalDemo() {
         h.p('You can press the Escape key or click the backdrop to close it.'),
         h.button({ onClick: closeModal }, 'Close From Inside')
       ]
-    })
+    }),
+    CodeSnippet({ code: modalDemoCode })
   );
 }

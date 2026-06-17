@@ -2,6 +2,7 @@
 import { h, bindAttr, Show } from 'aided-core';
 import { categories, difficulties, Category, Difficulty } from '../examples/metadata';
 import { Select } from './Select';
+import { injectStyles } from '../utils/dom';
 
 const STYLE_ID = 'search-filter-styles';
 
@@ -114,14 +115,6 @@ const searchStyles = `
   }
 `;
 
-function injectStyles() {
-  if (document.getElementById(STYLE_ID)) return;
-
-  const style = h.style(searchStyles);
-  style.id = STYLE_ID;
-  document.head.appendChild(style);
-}
-
 export function SearchAndFilter({
   searchQuery,
   setSearchQuery,
@@ -141,7 +134,7 @@ export function SearchAndFilter({
   totalResults: number;
   filteredCount: () => number;
 }) {
-  injectStyles();
+  injectStyles(STYLE_ID, searchStyles);
 
   const clearFilters = () => {
     setSearchQuery('');

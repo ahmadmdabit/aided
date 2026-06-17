@@ -12,6 +12,7 @@ export { createEffect } from './primitives/effect';
 export { createMemo } from './primitives/memo';
 export { untrack } from './primitives/untrack';
 export { createResource } from './primitives/resource';
+export type { FetcherInfo } from './primitives/resource';
 export { longestIncreasingSubsequenceAsync } from './primitives/lisAsync';
 
 // Configuration & Utilities
@@ -20,6 +21,10 @@ export { configureLIS } from './internal/lis';
 // Lifecycle & Context Management
 export { createRoot, onCleanup, hasOwner, provide, inject, inject as useContext } from './lifecycle/lifecycle';
 export { createContext } from './lifecycle/context';
+
+// Performance Profiling
+export { enableProfiler, getProfilerReport } from './internal/profiler';
+export type { ProfilerReport } from './internal/profiler';
 
 // DOM Manipulation & Rendering
 export { render } from './dom/render';

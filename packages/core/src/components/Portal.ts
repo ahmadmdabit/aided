@@ -10,13 +10,23 @@ export function Portal(props: { mount: Element; children: Node }): Comment {
   const { mount, children } = props;
   const placeholder = document.createComment('portal');
 
-  // Mount the children to the target
-  mount.appendChild(children);
+  // Track actual nodes to handle DocumentFragments correctly.
+  // Fragments are emptied upon insertion, so we must track their children
+  // to ensure proper cleanup and prevent NotFoundError crashes.
+  const nodes = children instanceof DocumentFragment
+    ? Array.from(children.childNodes)
+    : [children];
+
+  nodes.forEach(node => mount.appendChild(node));
 
   // When the Portal's owner scope is cleaned up, remove the children
   // from the mount target.
   onCleanup(() => {
-    mount.removeChild(children);
+    nodes.forEach(node => {
+      if (node.parentNode === mount) {
+        mount.removeChild(node);
+      }
+    });
   });
 
   return placeholder;

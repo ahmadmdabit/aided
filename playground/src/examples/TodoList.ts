@@ -1,4 +1,34 @@
 import { h, createSignal, createMemo, For, Model } from 'aided-core';
+import { CodeSnippet } from '../components/CodeSnippet';
+
+const todoListCode = `const [todos, setTodos] = createSignal([
+  { id: 1, text: 'Learn Aided', completed: true },
+  { id: 2, text: 'Build a cool app', completed: false },
+]);
+
+const [newTodoText, setNewTodoText] = createSignal('');
+const remainingCount = createMemo(() =>
+  todos().filter(todo => !todo.completed).length
+);
+
+return h.div(
+  { class: 'todo-app' },
+  h.form({ onSubmit: addTodo },
+    h.input({
+      ref: (el: HTMLInputElement) => Model(el, [newTodoText, setNewTodoText])
+    }),
+    h.button({ type: 'submit' }, 'Add Todo')
+  ),
+  h.ul(
+    For({ each: todos, key: (item) => item.id,
+      children: (item) => h.li(
+        h.span(item().text),
+        h.button({ onClick: () => removeTodo(item().id) }, '×')
+      )
+    })
+  ),
+  h.footer(h.strong(remainingCount), ' items left')
+);`;
 
 const WIDGET_STYLE_ID = 'aided-todolist-styles';
 
@@ -259,6 +289,7 @@ export function TodoList() {
     ),
     h.footer(
       h.strong(remainingCount), ' items left'
-    )
+    ),
+    CodeSnippet({ code: todoListCode })
   );
 }

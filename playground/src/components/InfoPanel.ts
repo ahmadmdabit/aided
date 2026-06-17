@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, Show } from 'aided-core';
+import { h, Show, createSignal, onCleanup } from 'aided-core';
 import type { SignalGetter } from 'aided-core';
 import { ExampleMetadata } from '../examples/metadata';
+import { injectStyles } from '../utils/dom';
 
 const STYLE_ID = 'info-panel-styles';
 
@@ -20,7 +21,7 @@ const panelStyles = `
     overflow: hidden;
     opacity: 0;
     transform: translateX(100%);
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
   }
 
   .info-panel.visible {
@@ -34,6 +35,21 @@ const panelStyles = `
     display: flex;
     align-items: center;
     justify-content: space-between;
+    cursor: grab;
+    user-select: none;
+  }
+
+  .info-panel-header:active {
+    cursor: grabbing;
+  }
+
+  .info-panel.collapsed {
+    max-height: 60px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .info-panel.collapsed .info-panel-content {
+    display: none !important;
   }
 
   .info-panel-title {
@@ -220,12 +236,71 @@ const panelStyles = `
   }
 `;
 
-function injectStyles() {
-  if (document.getElementById(STYLE_ID)) return;
+function makeDraggable(panelEl: HTMLElement, headerEl: HTMLElement) {
+  let startX = 0, startY = 0, currentX = 0, currentY = 0;
 
-  const style = h.style(panelStyles);
-  style.id = STYLE_ID;
-  document.head.appendChild(style);
+  const onPointerDown = (clientX: number, clientY: number) => {
+    const rect = panelEl.getBoundingClientRect();
+    startX = clientX;
+    startY = clientY;
+    currentX = rect.left;
+    currentY = rect.top;
+
+    panelEl.style.transition = 'none';
+    panelEl.style.right = 'auto';
+    panelEl.style.left = `${currentX}px`;
+    panelEl.style.top = `${currentY}px`;
+  };
+
+  // Mouse events
+  const onMouseDown = (e: MouseEvent) => {
+    if (e.button !== 0) return; // Left click only
+    e.preventDefault();
+    onPointerDown(e.clientX, e.clientY);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const onMouseMove = (e: MouseEvent) => {
+    panelEl.style.left = `${currentX + (e.clientX - startX)}px`;
+    panelEl.style.top = `${currentY + (e.clientY - startY)}px`;
+  };
+
+  const onMouseUp = () => {
+    panelEl.style.transition = '';
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+
+  // Touch events (for mobile/tablet support)
+  const onTouchStart = (e: TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+  };
+
+  const onTouchMove = (e: TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    panelEl.style.left = `${currentX + (e.touches[0].clientX - startX)}px`;
+    panelEl.style.top = `${currentY + (e.touches[0].clientY - startY)}px`;
+  };
+
+  const onTouchEnd = () => {
+    panelEl.style.transition = '';
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  };
+
+  headerEl.addEventListener('mousedown', onMouseDown);
+  headerEl.addEventListener('touchstart', onTouchStart, { passive: true });
+
+  onCleanup(() => {
+    headerEl.removeEventListener('mousedown', onMouseDown);
+    headerEl.removeEventListener('touchstart', onTouchStart);
+    onMouseUp();
+    onTouchEnd();
+  });
 }
 
 export function InfoPanel({
@@ -237,30 +312,62 @@ export function InfoPanel({
   isVisible: SignalGetter<boolean>;
   onClose: () => void;
 }) {
-  injectStyles();
+  injectStyles(STYLE_ID, panelStyles);
+
+  const [isCollapsed, setIsCollapsed] = createSignal(false);
+
+  let panelRef: HTMLElement | undefined;
+  let headerRef: HTMLElement | undefined;
+
+  const setupDrag = () => {
+    if (panelRef && headerRef) {
+      makeDraggable(panelRef, headerRef);
+    }
+  };
 
   return Show({
     when: () => metadata() !== null && isVisible(),
     children: () => {
       const meta = metadata()!;
-      
+
       return h.div(
-        { 
+        {
           classList: {
             'info-panel': true,
-            'visible': isVisible
+            'visible': isVisible,
+            'collapsed': isCollapsed
+          },
+          ref: (el: HTMLElement) => {
+            panelRef = el;
+            setupDrag();
           }
         },
         h.div(
-          { class: 'info-panel-header' },
+          {
+            class: 'info-panel-header',
+            ref: (el: HTMLElement) => {
+              headerRef = el;
+              setupDrag();
+            }
+          },
           h.h2({ class: 'info-panel-title' }, meta.title),
-          h.button(
-            {
-              class: 'info-panel-close',
-              onClick: onClose,
-              'aria-label': 'Close info panel'
-            },
-            '×'
+          h.div(
+            { style: { display: 'flex', gap: 'var(--gap-2)', alignItems: 'center' } },
+            h.button(
+              {
+                style: { background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', margin: 0, padding: '0 4px' },
+                onClick: () => setIsCollapsed(!isCollapsed())
+              },
+              () => isCollapsed() ? '✚' : '═'
+            ),
+            h.button(
+              {
+                class: 'info-panel-close',
+                onClick: onClose,
+                'aria-label': 'Close info panel'
+              },
+              '×'
+            )
           )
         ),
         h.div(
@@ -274,12 +381,14 @@ export function InfoPanel({
             { class: 'info-panel-section' },
             h.div({ class: 'section-title' }, 'Details'),
             h.div(
-              { style: { 
-                display: 'flex', 
-                gap: 'var(--gap-2)', 
-                marginBottom: 'var(--gap-2)', 
-                flexDirection: 'row-reverse',
-              } },
+              {
+                style: {
+                  display: 'flex',
+                  gap: 'var(--gap-2)',
+                  marginBottom: 'var(--gap-2)',
+                  flexDirection: 'row-reverse',
+                }
+              },
               h.span(
                 { class: `difficulty-badge difficulty-${meta.difficulty}` },
                 `${meta.difficulty} • ${meta.estimatedTime}`

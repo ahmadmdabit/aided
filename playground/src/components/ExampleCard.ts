@@ -1,5 +1,6 @@
 import { h } from 'aided-core';
 import { ExampleMetadata } from '../examples/metadata';
+import { injectStyles } from '../utils/dom';
 
 const STYLE_ID = 'example-card-styles';
 
@@ -134,14 +135,6 @@ const cardStyles = `
   }
 `;
 
-function injectStyles() {
-  if (document.getElementById(STYLE_ID)) return;
-
-  const style = h.style(cardStyles);
-  style.id = STYLE_ID;
-  document.head.appendChild(style);
-}
-
 // function getDifficultyIcon(difficulty: string) {
 //   switch (difficulty) {
 //     case 'beginner': return '⭐';
@@ -162,7 +155,7 @@ export function ExampleCard({
   isActive: boolean | (() => boolean);
   onClick: () => void;
 }) {
-  injectStyles();
+  injectStyles(STYLE_ID, cardStyles);
 
   console.log('ExampleCard: ', name);
 

@@ -2,6 +2,7 @@ import { effectStack, cleanup } from '../internal/scheduler';
 import type { Subscriber } from '../internal/scheduler';
 import type { Disposer, ReactiveOptions } from '../types';
 import { hasOwner, onCleanup } from '../lifecycle/lifecycle';
+import { isProfilerEnabled, recordEffectExecution } from '../internal/profiler';
 import { devWarning } from '../error';
 
 /**
@@ -42,18 +43,25 @@ export function createEffect(fn: () => void, options?: ReactiveOptions): Dispose
     hasOwner(),
     `createEffect(${options?.name ? `"${options.name}"` : ''}) was called outside of a reactive root. This effect will not be automatically cleaned up.`
   );
-  
+
   const effect: Subscriber = {
     execute: () => {
       // Clean up any old dependencies before re-running the effect.
       cleanup(effect);
       // Push this effect onto the global stack to track new dependencies.
       effectStack.push(effect);
+
+      const profiling = isProfilerEnabled();
+      const start = profiling ? performance.now() : 0;
+
       try {
         fn();
       } finally {
         // Always pop the effect from the stack after execution.
         effectStack.pop();
+
+        const duration = profiling ? (performance.now() - start) : 0;
+        recordEffectExecution(effect.name || 'anonymous', duration);
       }
     },
     dependencies: new Set(),

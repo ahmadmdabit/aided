@@ -40,7 +40,7 @@
   --bg-body: #121212;
   --bg-surface: #1a1a1a;
   --bg-sidebar: #1e1e1e;
-  --bg-panel: #1a1a1a;
+  --bg-panel: #3a3a3a;
   --bg-input: #2a2a2a;
   --bg-button: #2a2a2a;
   --bg-button-hover: #333;
@@ -184,6 +184,10 @@ a:hover {
   color: var(--text-link-hover);
 }
 
+hr {
+  border-style: dotted;
+}
+
 img,
 video,
 canvas,
@@ -207,8 +211,8 @@ ol {
 
 code {
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
-  background: var(--bg-input);
-  padding: 0.125em 0.25em;
+  /* background: var(--bg-input); */
+  /* padding: 0.125em 0.25em; */
   border-radius: var(--radius-sm);
   font-size: 0.9em;
 }
@@ -588,6 +592,10 @@ button:disabled,
   background: var(--bg-surface);
 }
 
+.playground-layout .code-snippet-pre {
+  background: var(--bg-surface);
+}
+
 .sidebar {
   width: 360px;
   background: var(--bg-sidebar);
@@ -625,11 +633,9 @@ button:disabled,
 
 .content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  height: 100%;
-  width: 100%;
+  padding: var(--gap-8) var(--gap-6);
+  overflow-y: auto;
+  background: var(--bg-surface);
 }
 
 .content>* {

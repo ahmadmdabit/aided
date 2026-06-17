@@ -296,4 +296,49 @@ describe('Aided Core Reactivity', () => {
     });
   });
 
+  describe('Scheduler Error Handling', () => {
+    it('should catch and log errors from unnamed effects during flushQueue', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+      const [sig, setSig] = createSignal(0);
+
+      const dispose = createRoot(() => {
+        createEffect(() => {
+          if (sig() > 0) throw new Error('Unnamed effect error');
+        });
+      });
+
+      setSig(1);
+      await tick();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error in effect:',
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
+      dispose();
+    });
+
+    it('should catch and log errors from named effects during flushQueue', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+      const [sig, setSig] = createSignal(0);
+
+      const dispose = createRoot(() => {
+        createEffect(() => {
+          if (sig() > 0) throw new Error('Named effect error');
+        }, { name: 'MyNamedEffect' });
+      });
+
+      setSig(1);
+      await tick();
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error in effect "MyNamedEffect":',
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
+      dispose();
+    });
+  });
 });

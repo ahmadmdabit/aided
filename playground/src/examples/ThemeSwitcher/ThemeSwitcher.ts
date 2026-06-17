@@ -2,6 +2,22 @@ import { h, createSignal, provide } from 'aided-core';
 import { ThemeContext, type ThemeContextType } from './../context/ThemeContext';
 import { Header } from './Header';
 import { MainContent } from './MainContent';
+import { CodeSnippet } from '../../components/CodeSnippet';
+
+const themeSwitcherCode = `const [theme, setTheme] = createSignal<'light' | 'dark'>('light');
+
+const toggleTheme = () => {
+  setTheme(theme() === 'light' ? 'dark' : 'light');
+};
+
+const themeContextValue: ThemeContextType = { theme, toggleTheme };
+provide(ThemeContext, themeContextValue);
+
+return h.div(
+  { class: theme },
+  Header(),
+  MainContent()
+);`;
 
 
 const WIDGET_STYLE_ID = 'aided-theme-switcher-styles';
@@ -53,12 +69,13 @@ export function ThemeSwitcher() {
   // The `h` helper will create a div and apply a class reactively.
   // When the `theme` signal changes, this class will automatically update.
   return h.div(
-    { 
+    {
       class: theme,
       'data-testid': 'theme-container' // [FIX] Add test identifier for reliable selection
     },
     Header(),
-    MainContent()
+    MainContent(),
+    CodeSnippet({ code: themeSwitcherCode })
   );
 }
 

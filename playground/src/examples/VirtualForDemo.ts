@@ -1,5 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { h, createSignal, VirtualFor } from 'aided-core';
+import { CodeSnippet } from '../components/CodeSnippet';
+
+const virtualListCode = `const [items, setItems] = createSignal<Row[]>(makeData(100000));
+
+const list = VirtualFor<Row>({
+  each: items,
+  itemHeight: 30,
+  overscan: 5,
+  containerProps: {
+    className: 'scroller',
+    style: { height: '100%' },
+  },
+  children: (item, index) =>
+    h.div({ class: 'row', style: { height: '30px' } },
+      \`\${index}: id=\${item.id} text=\${item.text}\`
+    ),
+});
+
+return h.div({ class: 'app' }, controls, list);`;
 
 type Row = { id: number; text: string };
 
@@ -137,5 +156,6 @@ export function VirtualForDemo() {
     { class: 'app' },
     controls,
     list,
+    CodeSnippet({ code: virtualListCode })
   );
 }

@@ -25,6 +25,14 @@ export function bindText<T>(element: Node, signal: SignalGetter<T>): void {
   });
 }
 
+// Security: URL-sensitive attributes that require protocol sanitization
+export const URL_ATTRS = new Set([
+  'href', 'src', 'action', 'formaction', 'xlink:href', 'srcdoc', 'poster'
+]);
+
+// Security: Regex to detect dangerous executable protocols
+export const DANGEROUS_PROTOCOL = /^\s*(javascript|vbscript|data):/i;
+
 /**
  * Binds a signal to an attribute of a DOM element.
  * Automatically updates the attribute when the signal changes.
@@ -45,20 +53,33 @@ export function bindText<T>(element: Node, signal: SignalGetter<T>): void {
  * ```
  */
 export function bindAttr<T>(element: Element, attributeName: string, signal: SignalGetter<T>): void {
+  const lowerAttr = attributeName.toLowerCase();
   // Security: Prevent event handler binding via attributes
-  if (attributeName.toLowerCase().startsWith('on')) {
+  if (lowerAttr.startsWith('on')) {
     throw new Error(
       `Security: Cannot bind event handler attribute '${attributeName}'. ` +
       `Use addEventListener() instead.`
     );
   }
-  
+
+  const isUrlAttr = URL_ATTRS.has(lowerAttr);
+
   createEffect(() => {
     const value = signal();
     if (value === null || value === undefined || value === false) {
       element.removeAttribute(attributeName);
     } else {
-      element.setAttribute(attributeName, String(value));
+      const strValue = String(value);
+
+      // Security: Sanitize URL protocols for sensitive attributes
+      if (isUrlAttr && DANGEROUS_PROTOCOL.test(strValue)) {
+        throw new Error(
+          `Security: Dangerous protocol detected in '${attributeName}' attribute. ` +
+          `Executable protocols like 'javascript:', 'vbscript:', and 'data:' are blocked.`
+        );
+      }
+
+      element.setAttribute(attributeName, strValue);
     }
   });
 }
@@ -200,8 +221,8 @@ export function bindStyle(element: HTMLElement, styleMap: Partial<StyleMap>): vo
           (element.style as Record<string, any>)[key] = value ?? '';
         });
       } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (element.style as Record<string, any>)[key] = valueOrSignal;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (element.style as Record<string, any>)[key] = valueOrSignal;
       }
     }
   }

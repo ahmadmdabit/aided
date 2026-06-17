@@ -82,6 +82,7 @@ export default tseslint.config(
       '**/*.config.js', // Ignore config files themselves
       '**/*.config.ts',
       'playground/test-pages/_TEMPLATE/', // Ignore template files (copied to e2e/)
+      'documents/', // Ignore reference/comparison documents
     ],
   }
 );

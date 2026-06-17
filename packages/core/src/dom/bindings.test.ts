@@ -392,6 +392,41 @@ describe('Aided DOM & Lifecycle', () => {
         await tick();
         expect(el.getAttribute('src')).toBe('image2.jpg');
       });
+
+      it('should throw error for dangerous URL protocols (javascript:)', () => {
+        const [href] = createSignal('javascript:alert(1)');
+        const el = document.createElement('a');
+        root.appendChild(el);
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'href', href);
+          });
+        }).toThrow('Security: Dangerous protocol detected in \'href\' attribute.');
+      });
+
+      it('should throw error for dangerous URL protocols (data:)', () => {
+        const [src] = createSignal('data:text/html,<script>alert(1)</script>');
+        const el = document.createElement('iframe');
+        root.appendChild(el);
+        expect(() => {
+          createRoot(() => {
+            bindAttr(el, 'src', src);
+          });
+        }).toThrow('Security: Dangerous protocol detected in \'src\' attribute.');
+      });
+
+      it('should allow safe URL protocols and relative paths', async () => {
+        const [href, setHref] = createSignal('/safe/path');
+        const el = document.createElement('a');
+        root.appendChild(el);
+        disposeRoot = createRoot(() => {
+          bindAttr(el, 'href', href);
+        });
+        expect(el.getAttribute('href')).toBe('/safe/path');
+        setHref('https://example.com');
+        await tick();
+        expect(el.getAttribute('href')).toBe('https://example.com');
+      });
     });
 
     describe('bindEvent', () => {

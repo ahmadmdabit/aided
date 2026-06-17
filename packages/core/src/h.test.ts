@@ -56,6 +56,17 @@ describe('Aided Hyperscript Helper (h)', () => {
       expect(el.getAttribute('href')).toBe('https://example.com');
     });
 
+    it('should throw error for dangerous URL protocols in static attributes', () => {
+      expect(() => {
+        h.a({ href: 'javascript:alert(1)' });
+      }).toThrow('Security: Dangerous protocol detected in \'href\' attribute.');
+
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any).dangerous.iframe({ src: 'data:text/html,<script>alert(1)</script>' });
+      }).toThrow('Security: Dangerous protocol detected in \'src\' attribute.');
+    });
+
     it('should attach an event handler and clean it up', () => {
       const handleClick = vi.fn();
       let button: HTMLElement;
@@ -97,7 +108,7 @@ describe('Aided Hyperscript Helper (h)', () => {
       const span = h.span();
       const p = h.p();
       const button = h.button();
-      
+
       expect(div).toBeInstanceOf(HTMLDivElement);
       expect(span).toBeInstanceOf(HTMLSpanElement);
       expect(p).toBeInstanceOf(HTMLParagraphElement);
@@ -115,7 +126,7 @@ describe('Aided Hyperscript Helper (h)', () => {
       const svg = h.svg();
       const circle = h.circle();
       const path = h.path();
-      
+
       expect(svg.tagName.toLowerCase()).toBe('svg');
       expect(circle.tagName.toLowerCase()).toBe('circle');
       expect(path.tagName.toLowerCase()).toBe('path');
@@ -125,21 +136,93 @@ describe('Aided Hyperscript Helper (h)', () => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (h as any).script();
-      }).toThrow('Security: Cannot create \'script\' element. This tag is not allowed.');
+      }).toThrow('Security: Cannot create \'script\' element. This tag is blocked by default. Use h.dangerous.script() if you explicitly need it and have sanitized the inputs.');
+    });
+
+    it('should reject other dangerous tags (iframe, base, meta, link, object, embed)', () => {
+      const dangerousTags = ['iframe', 'base', 'meta', 'link', 'object', 'embed'];
+      for (const tag of dangerousTags) {
+        expect(() => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (h as any)[tag]();
+        }).toThrow(`Security: Cannot create '${tag}' element. This tag is blocked by default.`);
+      }
     });
 
     it('should reject constructor property access', () => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (h as any).constructor();
-      }).toThrow('Security: Cannot create \'constructor\' element. This tag is not allowed.');
+      }).toThrow('Security: Cannot access \'constructor\'.');
+    });
+
+    it('should allow dangerous tags via h.dangerous namespace', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      process.env.NODE_ENV = 'development';
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const iframe = (h as any).dangerous.iframe();
+      expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const script = (h as any).dangerous.script();
+      expect(script).toBeInstanceOf(HTMLScriptElement);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Using h.dangerous.iframe() bypasses security filters')
+      );
+
+      consoleWarnSpy.mockRestore();
+      process.env.NODE_ENV = 'test';
+    });
+
+    it('should allow valid non-dangerous tags via h.dangerous namespace', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      process.env.NODE_ENV = 'development';
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const div = (h as any).dangerous.div();
+      expect(div).toBeInstanceOf(HTMLDivElement);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Using h.dangerous.div() bypasses security filters')
+      );
+
+      consoleWarnSpy.mockRestore();
+      process.env.NODE_ENV = 'test';
+    });
+
+    it('should reject invalid tag names in h.dangerous namespace', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any).dangerous['1invalid']();
+      }).toThrow('Invalid tag name \'1invalid\'. Tag names must start with a letter and contain only letters, numbers, and hyphens.');
+    });
+
+    it('should return undefined for symbol property access on h', () => {
+      const sym = Symbol('test');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((h as any)[sym]).toBeUndefined();
+    });
+
+    it('should return undefined for symbol property access on h.dangerous', () => {
+      const sym = Symbol('test');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((h as any).dangerous[sym]).toBeUndefined();
+    });
+
+    it('should reject prototype escapes even in h.dangerous namespace', () => {
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (h as any).dangerous.constructor();
+      }).toThrow('Security: Cannot access \'constructor\'.');
     });
 
     it('should reject prototype property access', () => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (h as any).prototype();
-      }).toThrow('Security: Cannot create \'prototype\' element. This tag is not allowed.');
+      }).toThrow('Security: Cannot access \'prototype\'.');
     });
 
     it('should reject tag names starting with numbers', () => {

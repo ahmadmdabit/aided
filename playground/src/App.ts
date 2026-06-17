@@ -1,4 +1,5 @@
 import { h, createSignal, createMemo, For } from 'aided-core';
+import { navigate } from './router';
 import { examples } from './examples';
 import { exampleMetadata } from './examples/metadata';
 import { ExampleCard } from './components/ExampleCard';
@@ -71,6 +72,20 @@ export function App() {
           alt: 'Aided Logo',
         })),
       h.h2({ style: { marginBottom: 0 }},'Aided Playground')
+    ),
+
+    // Navigation to documentation (SPA client-side route trigger)
+    h.div({
+      style: {
+        padding: '0 var(--gap-4)',
+        marginTop: 'var(--gap-3)',
+      }
+    },
+      h.button({
+        class: 'btn btn-primary',
+        style: { width: '100%', margin: 0 },
+        onClick: () => navigate('/documentation')
+      }, '📖 View Documentation')
     ),
 
     // Search and Filter Component

@@ -43,7 +43,13 @@ export function flushQueue() {
   queueMicrotask(() => {
     try {
       // Run all unique effects that have been marked as dirty.
-      dirtyEffects.forEach((effect) => effect.execute());
+      dirtyEffects.forEach((effect) => {
+        try {
+          effect.execute();
+        } catch (err) {
+          console.error(`Error in effect${effect.name ? ` "${effect.name}"` : ''}:`, err);
+        }
+      });
     } finally {
       // Clear the queue and reset the batching flag after execution.
       dirtyEffects.clear();

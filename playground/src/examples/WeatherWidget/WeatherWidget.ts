@@ -1,6 +1,23 @@
 import { h, createSignal, createResource, Show, For, createMemo } from 'aided-core';
 import { fetchLocation, fetchWeather, ErrorMessage, getWeatherIcon } from './weather-helpers';
 import { Spinner } from '../Spinner';
+import { CodeSnippet } from '../../components/CodeSnippet';
+
+const weatherWidgetCode = `const [coords, setCoords] = createSignal<{ latitude: number; longitude: number } | null>(null);
+
+const locationResource = createResource(coords, fetchLocation);
+const weatherResource = createResource(locationResource, fetchWeather);
+
+return h.div(
+  h.button({ onClick: handleGetWeatherClick }, 'Get My Weather'),
+  Show({
+    when: () => locationResource(),
+    children: () => h.div(
+      h.h3(\`Location: \${locationResource().address.city}\`),
+      h.p(\`Temp: \${weatherResource().current.temperature_2m}°C\`)
+    )
+  })
+);`;
 // 1. Define a unique ID for the style tag.
 const WIDGET_STYLE_ID = 'aided-weather-widget-styles';
 
@@ -121,18 +138,18 @@ export function WeatherWidget() {
             // --- Location Section (Simplified) ---
             Show({
               when: () => !locationResource.error(),
-              fallback: () => ErrorMessage({ message: locationResource.error()?.message }),
+              fallback: () => ErrorMessage({ message: (locationResource.error() as Error)?.message ?? 'An unknown error occurred' }),
               children: () => {
                 const location = locationResource();
                 const locationName = location?.address?.city || location?.address?.town;
                 const countryCode = location?.address?.country_code?.toUpperCase();
-                return locationName ? h.h3({ 'data-testid': 'weather-location' }, `Location: ${locationName}, ${countryCode}`) : null;
+                return locationName ? h.h3({ 'data-testid': 'weather-location' }, `Location: ${locationName}, ${countryCode}`) : h.h3({ 'data-testid': 'weather-location' }, 'Location details unavailable');
               }
             }),
             // --- Weather Section (Simplified) ---
             Show({
               when: () => !weatherResource.error(),
-              fallback: () => ErrorMessage({ message: weatherResource.error()?.message }),
+              fallback: () => ErrorMessage({ message: (weatherResource.error() as Error)?.message ?? 'An unknown error occurred' }),
               children: () => {
                 const weather = weatherResource();
                 return weather ? h.div(
@@ -141,19 +158,20 @@ export function WeatherWidget() {
                     For({
                       each: () => weather.daily.time,
                       children: (time, index) => h.div({ class: 'forecast-day', 'data-testid': `weather-forecast-day-${index()}` },
-                        h.p(new Date(time()).toLocaleDateString(undefined, { weekday: 'short' })),
+                        h.p(new Date(time() as string).toLocaleDateString(undefined, { weekday: 'short' })),
                         h.p({ class: 'forecast-icon' }, getWeatherIcon(weather.daily.weather_code[index()])),
                         h.p(`H: ${weather.daily.temperature_2m_max[index()]}°`),
                         h.p(`L: ${weather.daily.temperature_2m_min[index()]}°`)
                       )
                     })
                   )
-                ) : null;
+                ) : h.p('Weather data unavailable');
               }
             })
           )
         })
       )
-    })
+    }),
+    CodeSnippet({ code: weatherWidgetCode })
   );
 }

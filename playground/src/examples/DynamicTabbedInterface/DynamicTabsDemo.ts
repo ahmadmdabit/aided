@@ -1,8 +1,25 @@
-import { h, createSignal, createMemo, untrack } from 'aided-core'; // 1. Import untrack
+import { h, createSignal, createMemo, untrack } from 'aided-core';
 import { HomeTab } from './HomeTab';
 import { ProfileTab } from './ProfileTab';
 import { SettingsTab } from './SettingsTab';
 import { TabButton } from './TabButton';
+import { CodeSnippet } from '../../components/CodeSnippet';
+
+const dynamicTabsCode = `const TABS = { home: HomeTab, profile: ProfileTab, settings: SettingsTab };
+const [activeTab, setActiveTab] = createSignal<TabName>('home');
+const tabInstances = new Map<TabName, Node>();
+
+const ActiveComponent = createMemo(() => {
+  const tabName = activeTab();
+  if (!tabInstances.has(tabName)) {
+    tabInstances.set(tabName, untrack(() => TABS[tabName]()));
+  }
+  return tabInstances.get(tabName)!;
+});
+
+return h.div(
+  h.main({ class: 'tab-content' }, ActiveComponent)
+);`;
 
 // 1. Create a map from a string identifier to the actual component function.
 // This is the key to the pattern: treating components as values.
@@ -73,7 +90,7 @@ export function DynamicTabsDemo() {
       Object.keys(TABS).map((tabName) =>
         TabButton({
           label: tabName.charAt(0).toUpperCase() + tabName.slice(1),
-          onClick: () => setActiveTab(tabName),
+          onClick: () => setActiveTab(tabName as TabName),
           isActive: () => activeTab() === tabName,
           'data-testid': `tab-button-${tabName}`
         })
@@ -85,6 +102,7 @@ export function DynamicTabsDemo() {
       // that returns a DOM node, and it will automatically replace the
       // content when the memo re-evaluates.
       ActiveComponent
-    )
+    ),
+    CodeSnippet({ code: dynamicTabsCode })
   );
 }

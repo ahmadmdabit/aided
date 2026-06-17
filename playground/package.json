@@ -9,6 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "aided-core": "workspace:*"
+    "aided-core": "workspace:*",
+    "dompurify": "^3.4.9",
+    "marked": "^18.0.5",
+    "prismjs": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/prismjs": "^1.26.6"
   }
 }

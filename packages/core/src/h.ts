@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { bindEvent, bindAttr, bindClassList, bindStyle } from './dom/bindings';
+import { bindEvent, bindAttr, bindClassList, bindStyle, URL_ATTRS, DANGEROUS_PROTOCOL } from './dom/bindings';
 import { createEffect } from './primitives/effect';
+import { devWarning } from './error';
 import type { SignalGetter } from './types';
 
 /**
@@ -57,7 +58,7 @@ function processChild(child: Child): Node {
 
       // Skip the first run if it's the same as the initial value, or handle updates.
       // This is a micro-optimization; the main logic handles replacement correctly.
-      
+
       if (value instanceof Node) {
         if (currentRenderedNode !== value) {
           parent?.replaceChild(value, currentRenderedNode);
@@ -147,7 +148,18 @@ function hyperscript(tag: string) {
             if (typeof value === 'function') {
               bindAttr(el, key, value);
             } else {
-              el.setAttribute(key, String(value));
+              const strValue = String(value);
+              const lowerKey = key.toLowerCase();
+
+              // Security: Block dangerous URL protocols on static attributes
+              if (URL_ATTRS.has(lowerKey) && DANGEROUS_PROTOCOL.test(strValue)) {
+                throw new Error(
+                  `Security: Dangerous protocol detected in '${key}' attribute. ` +
+                  `Executable protocols like 'javascript:', 'vbscript:', and 'data:' are blocked.`
+                );
+              }
+
+              el.setAttribute(key, strValue);
             }
           }
         }
@@ -166,8 +178,13 @@ function hyperscript(tag: string) {
 // Valid tag name pattern: starts with letter, contains letters/numbers/hyphens
 const VALID_TAG_PATTERN = /^[a-zA-Z][a-zA-Z0-9-]*$/;
 
-// Dangerous properties to block
-const BLOCKED_PROPERTIES = new Set(['script', 'constructor', 'prototype']);
+// Tags that pose security risks (XSS, clickjacking, data exfiltration)
+const DANGEROUS_TAGS = new Set([
+  'script', 'iframe', 'base', 'meta', 'link', 'object', 'embed'
+]);
+
+// Properties that must be strictly blocked to prevent prototype pollution/escapes
+const STRICTLY_BLOCKED = new Set(['constructor', 'prototype', '__proto__']);
 
 /**
  * The main hyperscript helper for creating DOM elements with reactive capabilities.
@@ -193,23 +210,50 @@ const BLOCKED_PROPERTIES = new Set(['script', 'constructor', 'prototype']);
  * ```
  */
 export const h = new Proxy({}, {
-  get(_target, prop: string) {
-    // Block dangerous properties
-    if (BLOCKED_PROPERTIES.has(prop)) {
+  get(_target, prop: string | symbol) {
+    if (typeof prop !== 'string') return undefined;
+
+    // 1. Opt-in namespace for dangerous tags
+    if (prop === 'dangerous') {
+      return new Proxy({}, {
+        get(_, dangerousProp: string | symbol) {
+          if (typeof dangerousProp !== 'string') return undefined;
+          if (STRICTLY_BLOCKED.has(dangerousProp)) {
+            throw new Error(`Security: Cannot access '${dangerousProp}'.`);
+          }
+          if (DANGEROUS_TAGS.has(dangerousProp) || VALID_TAG_PATTERN.test(dangerousProp)) {
+            devWarning(
+              false,
+              `Using h.dangerous.${dangerousProp}() bypasses security filters. Ensure all attributes and children are strictly sanitized.`
+            );
+            return hyperscript(dangerousProp);
+          }
+          throw new Error(`Invalid tag name '${dangerousProp}'. Tag names must start with a letter and contain only letters, numbers, and hyphens.`);
+        }
+      });
+    }
+
+    // 2. Strictly block prototype escapes
+    if (STRICTLY_BLOCKED.has(prop)) {
+      throw new Error(`Security: Cannot access '${prop}'.`);
+    }
+
+    // 3. Block dangerous tags in the standard namespace
+    if (DANGEROUS_TAGS.has(prop)) {
       throw new Error(
         `Security: Cannot create '${prop}' element. ` +
-        `This tag is not allowed.`
+        `This tag is blocked by default. Use h.dangerous.${prop}() if you explicitly need it and have sanitized the inputs.`
       );
     }
-    
-    // Validate tag name format
+
+    // 4. Validate tag name format
     if (!VALID_TAG_PATTERN.test(prop)) {
       throw new Error(
         `Invalid tag name '${prop}'. ` +
         `Tag names must start with a letter and contain only letters, numbers, and hyphens.`
       );
     }
-    
+
     return hyperscript(prop);
   }
-}) as Record<string, (...args: any[]) => HTMLElement>;
+}) as Record<string, (...args: any[]) => HTMLElement> & { dangerous: Record<string, (...args: any[]) => HTMLElement> };

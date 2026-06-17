@@ -88,5 +88,29 @@ describe('Aided Structural Components', () => {
       // The content in the portal target should now be gone
       expect(portalTarget.innerHTML).toBe('');
     });
+
+    it('should correctly clean up DocumentFragments without throwing NotFoundError', () => {
+      const fragment = document.createDocumentFragment();
+      const p1 = document.createElement('p');
+      p1.textContent = 'Fragment Child 1';
+      const p2 = document.createElement('p');
+      p2.textContent = 'Fragment Child 2';
+      fragment.appendChild(p1);
+      fragment.appendChild(p2);
+
+      disposeRoot = createRoot(() => {
+        const portal = Portal({
+          mount: portalTarget,
+          children: fragment,
+        });
+        root.appendChild(portal);
+      });
+
+      expect(portalTarget.innerHTML).toBe('<p>Fragment Child 1</p><p>Fragment Child 2</p>');
+
+      // This should not throw an error
+      expect(() => disposeRoot()).not.toThrow();
+      expect(portalTarget.innerHTML).toBe('');
+    });
   });
 });

@@ -1,9 +1,18 @@
 import { createSignal } from './signal';
 import { createEffect } from './effect';
 import { createMemo } from './memo';
+import { onCleanup } from '../lifecycle/lifecycle';
 import type { Resource, SignalGetter, ReactiveOptions } from '../types';
 
-type Fetcher<S, T> = (source: S) => T | Promise<T>;
+/**
+ * Information passed to the fetcher function, including an AbortSignal
+ * to cancel the request if the resource is disposed or re-fetched.
+ */
+export interface FetcherInfo {
+  signal: AbortSignal;
+}
+
+type Fetcher<S, T> = (source: S, info?: FetcherInfo) => T | Promise<T>;
 
 /**
  * Creates a resource that handles asynchronous data fetching with reactive state management.
@@ -59,14 +68,27 @@ export function createResource<S, T, E = unknown>(
     setLoading(true);
     setError(undefined);
 
+    const controller = new AbortController();
+
+    // Abort the fetch if the effect re-runs or the reactive scope is disposed
+    onCleanup(() => {
+      controller.abort();
+    });
+
     const executeFetch = async () => {
       try {
-        const result = await fetcher(sourceValue);
-        setData(result);
+        const result = await fetcher(sourceValue, { signal: controller.signal });
+        if (!controller.signal.aborted) {
+          setData(result);
+        }
       } catch (e) {
-        setError(e as E);
+        if (!controller.signal.aborted) {
+          setError(e as E);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 

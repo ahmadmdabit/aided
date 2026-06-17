@@ -1,5 +1,22 @@
 import { h } from 'aided-core';
 import { createToaster } from './createToaster';
+import { CodeSnippet } from '../../components/CodeSnippet';
+
+const toasterDemoCode = `const toaster = createToaster({
+  position: 'bottom-right',
+  defaultDuration: 5000,
+});
+
+return h.div(
+  h.button({
+    onClick: () => toaster.add('Success!', { type: 'success' })
+  }, 'Add Success'),
+  h.button({
+    onClick: () => toaster.add('Error!', { type: 'error', persistent: true })
+  }, 'Add Error'),
+  h.button({ onClick: toaster.clearAll }, 'Clear All'),
+  toaster.ToasterComponent()
+);`;
 
 // 1. Create a toaster instance. You can configure it here.
 const toaster = createToaster({
@@ -41,6 +58,7 @@ export function ToasterDemo() {
 
     // 2. Mount the UI component for each instance.
     toaster.ToasterComponent(),
-    topLeftToaster.ToasterComponent()
+    topLeftToaster.ToasterComponent(),
+    CodeSnippet({ code: toasterDemoCode })
   );
 }

@@ -143,4 +143,33 @@ describe('Aided createResource', () => {
     await tick();
     expect(resource!()).toBe('Sync User 2');
   });
+
+  it('should pass an AbortSignal to the fetcher and abort on scope disposal', async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const { promise, resolve } = createManualPromise<string>();
+
+    const fetcher = vi.fn(async (id: number, info: { signal: AbortSignal }) => {
+      capturedSignal = info.signal;
+      await promise;
+      return `User ${id}`;
+    });
+
+    const [userId] = createSignal(1);
+
+    dispose = createRoot(() => {
+      createResource(userId, fetcher);
+    });
+
+    expect(capturedSignal).toBeInstanceOf(AbortSignal);
+    expect(capturedSignal!.aborted).toBe(false);
+
+    // Dispose the root, which should trigger onCleanup and abort the signal
+    dispose();
+    // dispose = undefined; // Prevent afterEach from disposing again
+
+    expect(capturedSignal!.aborted).toBe(true);
+
+    resolve('User 1');
+    await tick();
+  });
 });

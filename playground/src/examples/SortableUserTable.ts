@@ -1,6 +1,38 @@
 import { h, createSignal, createMemo, For } from 'aided-core';
+import { CodeSnippet } from '../components/CodeSnippet';
 
-const initialUsers = [
+interface User {
+  id: number;
+  name: string;
+  age: number;
+}
+
+type SortKey = keyof Omit<User, 'id'>;
+type SortDirection = 'asc' | 'desc';
+
+const sortableTableCode = `const [users] = createSignal(initialUsers);
+const [sortConfig, setSortConfig] = createSignal({ key: 'name', direction: 'asc' });
+
+const sortedUsers = createMemo(() => {
+  const { key, direction } = sortConfig();
+  const sorted = [...users()];
+  sorted.sort((a, b) => {
+    if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+    if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+});
+
+return h.table(
+  h.tbody(
+    For({ each: sortedUsers, key: (user) => user.id,
+      children: (user) => h.tr(h.td(user().name), h.td(user().age))
+    })
+  )
+);`;
+
+const initialUsers: User[] = [
   { id: 1, name: 'Alice', age: 30 },
   { id: 2, name: 'Bob', age: 25 },
   { id: 3, name: 'Charlie', age: 35 },
@@ -12,7 +44,7 @@ export function SortableUserTable() {
   const [users] = createSignal(initialUsers);
 
   // 2. State: The current sorting configuration
-  const [sortConfig, setSortConfig] = createSignal({ key: 'name', direction: 'asc' });
+  const [sortConfig, setSortConfig] = createSignal<{ key: SortKey; direction: SortDirection }>({ key: 'name', direction: 'asc' });
 
   // 3. Derived State: A memo that returns a sorted copy of the users
   const sortedUsers = createMemo(() => {
@@ -27,9 +59,9 @@ export function SortableUserTable() {
   });
 
   // --- Event Handler ---
-  const handleSort = (key: string) => {
+  const handleSort = (key: SortKey) => {
     const currentConfig = sortConfig();
-    let direction = 'asc';
+    let direction: SortDirection = 'asc';
     // If clicking the same column, reverse the direction
     if (currentConfig.key === key && currentConfig.direction === 'asc') {
       direction = 'desc';
@@ -79,6 +111,7 @@ export function SortableUserTable() {
           h.td(user().age)
         )
       })
-    )
+    ),
+    CodeSnippet({ code: sortableTableCode })
   );
 }
